@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GameContent>
+    <Races>
+        <Humans>
+            <Currency>Dollar</Currency>
+
+        </Humans>
+        <Highs>
+
+        </Highs>
+        <Crox>
+
+        </Crox>
+    </Races>
+    <GameItems>
+        <Materials>
+            <Whool></Whool>
+
+        </Materials>
+        <CommercialGoods>
+            <!--new-->
+            <Foods>
+                <Coffee default_price="4" race="Human"></Coffee>
+                <Corn default_price="0.05" race="Human"></Corn>
+                <Wheat default_price="0.1" race="Human"></Wheat>
+                <Soy default_price="0.1" race="Human"></Soy>
+                <Beer default_price="2" race="Human"></Beer>
+                <Burger default_price="3" race="Human"></Burger>
+            </Foods>
+            <Baverages></Baverages>
+            <Resources>
+                <Iron></Iron>
+                <Wood></Wood>
+                <Uranium></Uranium>
+                <Plutonium></Plutonium>
+                <Copper></Copper>
+                <Silver></Silver>
+                <Gold></Gold>
+                <Platinum></Platinum>
+                <Titan></Titan>
+                <Palladium></Palladium>
+                <Aluminium></Aluminium>
+                <Water></Water>
+                <Silicium></Silicium>
+                <Oil></Oil>
+
+                <!--new-->
+                <Rhodium></Rhodium>
+            </Resources>
+        </CommercialGoods>
+        <Ships></Ships>
+
+    </GameItems>
+
+</GameContent>

@@ -1,0 +1,13 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+    </style>
+
+    <style name="moveButtons">
+        <item name="android:background">#BDBDBD</item>
+        <item name="android:layout_margin">3dp</item>
+        <item name="android:alpha">0.5</item>
+    </style>
+</resources>

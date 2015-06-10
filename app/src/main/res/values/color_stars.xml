@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="star_orange">#FE9A2E</color>
+    <color name="star_red">#FF0000</color>
+    <color name="star_yellow">#F7FE2E</color>
+    <color name="star_blue">#2E2EFE</color>
+</resources>

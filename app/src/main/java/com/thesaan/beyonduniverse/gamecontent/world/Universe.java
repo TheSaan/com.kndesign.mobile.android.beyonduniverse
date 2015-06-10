@@ -1,0 +1,506 @@
+package com.thesaan.beyonduniverse.gamecontent.world;
+
+import android.content.Context;
+import android.util.Log;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import com.thesaan.beyonduniverse.MainActivity;
+import com.thesaan.beyonduniverse.R;
+import com.thesaan.beyonduniverse.gamecontent.economy.Market;
+import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.City;
+import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Galaxy;
+import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Moon;
+import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Planet;
+import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.SolarSystem;
+import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Star;
+import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.UniverseObject;
+import com.thesaan.gameengine.android.database.UniverseDatabase;
+import com.thesaan.gameengine.android.handler.MathHandler;
+import com.thesaan.gameengine.android.handler.RandomHandler;
+
+import java.util.Random;
+
+/**
+ * Created by mknoe on 28.04.2015.
+ */
+public class Universe implements UniverseObjectProperties {
+
+    Context context;
+    UniverseDatabase uDb;
+
+    //laoding
+    float loadProgress = 0;
+    int objectsToLoad = 0;
+
+    //the value in the log text
+    float mass, radius, degrees, volume, population, moons2, solarsystems2, planets2, stars2, cities2;
+    int planetType;
+    String name;
+    float X, Y, Z;
+
+
+    float availableObjects = numberOfAvailableObjects;
+    /*
+    *The following sizes guarantee that at least all possible objects fit into the universe
+    * */
+
+
+    //these counters count the number of created objects
+    //which should be the same as the indexes in the
+    //certain table of the objects
+    private int galaxyIndex = 0;
+    private int solarSystemIndex = 0;
+    private int starIndex = 0;
+    private int planetIndex = 0;
+    private int moonIndex = 0;
+    private int cityIndex = 0;
+
+    private int[] amountIndexes = {
+            galaxyIndex,
+            solarSystemIndex,
+            starIndex,
+            planetIndex,
+            moonIndex,
+            cityIndex
+    };
+
+
+    Random r;
+
+    /**
+     * The universe object creates all objects like galaxies, solar systems, planets (+ thier cities), moons and stars.
+     *
+     * This class is only for the initializing step before running the game on the market. All created objects will be saved
+     * in a server stored database.
+     * @param context
+     * @param db
+     */
+    public Universe(Context context, UniverseDatabase db) {
+
+        this.context = context;
+        uDb = db;
+        r = new Random();
+
+
+        try {
+            Thread T = new Thread(new Runnable() {
+                @Override
+                public void run() {
+//                    createWorld();
+//                    createGalaxies(50);
+                }
+            });
+
+            T.start();
+
+
+//            createPlanets(1, new MathHandler.Vector(2000.0, 2000.0, 2000.0));
+//            createMoons(20,new MathHandler.Vector(2000.0,2000.0,2000.0));
+//            createSolarSystems(1);
+        } catch (Exception e) {
+            System.err.println("Create Galaxy ERROR: ");
+            e.printStackTrace();
+        }
+
+    }
+
+    public void setLoadingProgressBar(int progress) {
+
+    }
+
+    private void createGalaxies(int amount){
+
+        SolarSystem[] systems;
+        try {
+            systems = createSolarSystems(10);
+        }catch (Exception e){
+            System.err.println("Failed to create Solarsystem!\n"+e);
+            systems = null;
+        }
+
+        Galaxy g = new Galaxy("MilchStraße",UniverseObject.setRandomVolume(OBJECT_GALAXY),UniverseObject.setRandomPosition(OBJECT_GALAXY),systems,OBJECT_GALAXY);
+        uDb.addGalaxy(g);
+        for(int i = 0;i< amount-1;i++){
+            g = new Galaxy("",UniverseObject.setRandomVolume(OBJECT_GALAXY),UniverseObject.setRandomPosition(OBJECT_GALAXY),systems,OBJECT_GALAXY);
+            uDb.addGalaxy(g);
+        }
+        Log.v("GALAXY", "Name: " + g.getName() + " SS: " + g.getSolarsystems().length);
+
+    }
+    private Galaxy[] createWorld() {
+        
+        try {
+            Random r = new Random();
+            int numberOfRestObjects = MAX_UNIVERSE_OBJECTS;
+
+            int amountOfGalaxies = RandomHandler.createIntegerFromRange(50, numberOfAllowedGalaxies, r);
+            Galaxy[] galaxies = new Galaxy[amountOfGalaxies];
+
+            addObjectsToLoad(amountOfGalaxies);
+
+            //create galaxy after galaxy
+            for (int i = 0; i < amountOfGalaxies; i++) {
+
+                int numberOfSolarsystems = RandomHandler.createIntegerFromRange(50, numberOfAllowedSolarSystems / amountOfGalaxies, r);
+
+                //count created galaxies
+                galaxyIndex++;
+
+                addObjectsToLoad(numberOfSolarsystems);
+
+
+                //position
+                MathHandler.Vector vec = UniverseObject.setRandomPosition(OBJECT_GALAXY);
+
+                //the volume
+                volume = UniverseObject.setRandomVolume(OBJECT_GALAXY);
+
+                System.err.println("Test galaxy " + galaxyIndex);
+
+                //create solar systems for galaxy
+                SolarSystem[] solarSystems = createSolarSystems(numberOfSolarsystems);
+
+
+                //test
+                solarsystems2 = solarSystems.length;
+                X = vec.getXf();
+                Y = vec.getYf();
+                Z = vec.getZf();
+
+                Galaxy g = new Galaxy("", volume, vec, solarSystems, OBJECT_GALAXY);
+                //test
+
+                //new galaxy with random data
+                galaxies[i] = g;
+
+                name = galaxies[i].getName();
+
+                Log.v(LOG_TAG_CREATE_WORLD_INFO, "Create galaxy at positionX: " + X + "\nY: " + Y + "\nZ: " + Z + " with\n" + solarsystems2 + " solarsystems.\n Volume: " + volume + " and called " + name);
+                try {
+
+                    Thread.sleep(25);
+                } catch (Exception we) {
+                    System.err.println("Wait error\n" + we);
+                }
+            }
+
+            //update the amount of objects who are not set yet and are free to get filled
+            updateAvailableObjects(amountIndexes);
+
+            return galaxies;
+        } catch (Exception e) {
+            System.err.println("Galaxy Loop: " + e);
+            return null;
+        }
+    }
+    private SolarSystem[] createSolarSystems(int amount) {
+        try {
+            SolarSystem[] solarSystems = new SolarSystem[amount];
+
+            for (int i = 0; i < solarSystems.length; i++) {
+
+                solarSystemIndex++;
+                //position
+                MathHandler.Vector vec = UniverseObject.setRandomPosition(OBJECT_SOLARSYSTEM);
+                //the volume
+                volume = UniverseObject.setRandomVolume(OBJECT_SOLARSYSTEM);
+                //the radius = the width /2
+                try {
+
+                    radius = (float)MathHandler.squareRootX(volume, 1.0f/3.0f) / 2.0f;
+                }catch (Exception e){
+                    System.err.println("CalcRadiusEx: " +e);
+                }
+                System.err.println("Test ss " + solarSystemIndex);
+                //the stars will be created in the middle of the solar System
+                Star[] stars = createStars(vec);
+                Planet[] planets = createPlanets(RandomHandler.createIntegerFromRange(0, 20, r), vec);
+
+                addObjectsToLoad(stars.length);
+                addObjectsToLoad(planets.length);
+
+                //test
+                planets2 = planets.length;
+                stars2 = stars.length;
+                X = vec.getXf();
+                Y = vec.getYf();
+                Z = vec.getZf();
+
+                //test
+                SolarSystem s = new SolarSystem("",volume, vec, stars, planets, radius, OBJECT_SOLARSYSTEM);
+                solarSystems[i] = s;
+
+                name = solarSystems[i].getName();
+
+                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\tCreate solarsystem at position \n" + "X: " + X + "\nY: " + Y + "\nZ: " + Z + "\\nwith " + planets2 + " planets and " + stars2 + " Star(s)." + " And called " + name);
+
+                //Thread.sleep(25);
+            }
+            return solarSystems;
+        } catch (Exception e) {
+            //System.err.println("Solarsystem Loop: " + e);
+            return null;
+        }
+    }
+    private Planet[] createPlanets(int amount, MathHandler.Vector solarSystemPosition) {
+        
+
+        Planet[] planets = new Planet[amount];
+
+        City[] cities;
+        try {
+            addObjectsToLoad(amount);
+
+            for (int i = 0; i < planets.length; i++) {
+
+                planetIndex++;
+
+                System.err.println("Test planet " + planetIndex);
+
+                MathHandler.Vector vec = UniverseObject.setRandomPlanetPosition(solarSystemPosition.getXf(), solarSystemPosition.getYf(), solarSystemPosition.getZf());
+                if (vec == null)
+                    System.err.println("vec is null");
+
+                degrees = UniverseObject.setRandomTemperature(OBJECT_PLANET);
+
+                if (degrees < MAX_TEMPERATURE_TO_SURVIVE && degrees > MIN_TEMPERATURE_TO_SURVIVE) {
+                    if (degrees <= 3) {
+                        planetType = PLANET_TYPE_SNOW;
+                    } else if (degrees < 35 && degrees > 3) {
+                        planetType = UniverseObject.setRandomPlanetType();
+                    } else
+                    if(degrees > 45 && degrees < MAX_TEMPERATURE_TO_SURVIVE){
+                        planetType = PLANET_TYPE_DESSERT;
+                    }
+                    cities = createCities(RandomHandler.createIntegerFromRange(0, 5, r));
+                    addObjectsToLoad(cities.length);
+                } else {
+
+                    if (degrees < 500 && degrees > 0) {
+                        planetType = PLANET_TYPE_STONE;
+                    } else if (degrees >= 500) {
+                        planetType = PLANET_TYPE_MAGMA;
+                    } else if (degrees < MIN_TEMPERATURE_TO_SURVIVE) {
+                        planetType = PLANET_TYPE_ICE;
+                    } else {
+                        planetType = PLANET_TYPE_LOST;
+                    }
+                    cities = null;
+                }
+                System.err.println("Planet C°: " + degrees + "\nPlanettype: "+Planet.getPlanetTypeName(planetType));
+
+                Moon[] moons = createMoons(RandomHandler.createIntegerFromRange(0, MAX_MOONS_FOR_PLANET, r), vec);
+
+                addObjectsToLoad(moons.length);
+
+                mass = UniverseObject.setRandomMass(OBJECT_PLANET);
+
+                //test
+                if (moons != null)
+                    moons2 = moons.length;
+                else
+                    System.err.println("No moons");
+
+                if (cities != null)
+                    cities2 = cities.length;
+                else
+                    System.err.println("No cities. Planet is not habitable!");
+
+                Planet p = new Planet("",vec, mass, radius, moons, cities, degrees, OBJECT_PLANET, planetType);
+                planets[i] = p;
+
+                name = planets[i].getName();
+
+//                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\tCreate planet with " + moons2 + " Moons and " + cities2 + " cities.\nMass: " + mass + " times the earth mass, Radius: " + radius + ", Degrees:  " + degrees + " .\nPopulation: " + population + " and called " + name + "\nPlanet type: " + Planet.getPlanetTypeName(planetType));
+
+                Thread.sleep(25);
+            }
+            return planets;
+        } catch (Exception e) {
+            System.err.println("Planet "+planetIndex+" Loop: " + e);
+            return null;
+        }
+    }
+    /**
+     * Creates a single star or with a minimal probability a twin star 1:10000
+     *
+     * @return
+     */
+    private Star[] createStars(MathHandler.Vector vec) {
+        
+
+        try {
+            int amount;
+            //creates a random number to choose if it will be a twin star system
+            int prob = RandomHandler.createIntegerFromRange(0, 100000000, r);
+
+            if (prob > 500010000 && prob < 500020000)
+                amount = 2;
+            else
+                amount = 1;
+
+            addObjectsToLoad(amount);
+
+            Star[] stars = new Star[amount];
+            //temporary storage for the x position if two stars are set
+            float tempX = vec.getXf();
+            for (int i = 0; i < amount; i++) {
+
+                //place the two stars beside each other
+                if (amount > 1) {
+                    //change the vec value a bit
+                    if (i == 0)
+                        vec.setX(vec.getXf() * 0.999);
+                    if (i == 1)
+                        vec.setX(tempX * 1.001);
+                }
+                starIndex++;
+                System.err.println("Test star " + starIndex);
+                mass = UniverseObject.setRandomMass(OBJECT_STAR);
+                radius = UniverseObject.setRandomRadius(OBJECT_STAR);
+                degrees = UniverseObject.setRandomTemperature(OBJECT_STAR);
+
+                Star s = new Star("", vec, mass, radius, degrees, OBJECT_STAR);
+                stars[i] = s;
+
+                name = stars[i].getName();
+
+                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\tCreate star with Mass: " + mass + " Temperature: " + degrees + " Radius: " + radius + " and called " + name);
+                try {
+
+                    Thread.sleep(25);
+                } catch (Exception we) {
+                    System.err.println("Wait error\n" + we);
+                }
+            }
+            return stars;
+        } catch (Exception e) {
+            System.err.println("Star Loop: " + e);
+            return null;
+        }
+
+
+    }
+    private City[] createCities(int amount) {
+        
+
+        City[] cities = new City[amount];
+        Market[] markets = new Market[amount];
+        try {
+
+//            System.err.println("Cities " + cities.length);
+//            System.err.println("CitiesIndex " + cityIndex);
+//            System.err.println("Amount " + amount);
+
+            for (int i = 0; i < cities.length; i++) {
+                addObjectsToLoad(1);
+                addObjectsToLoad(1);
+                try {
+                    cityIndex++;
+//                    System.err.println("Test City " + cityIndex);
+                } catch (IndexOutOfBoundsException ex) {
+                    System.err.println("Indexes out of bounds");
+                }
+//                System.err.println("i " + i);
+
+                //TODO Hier könnte es sein, dass der Maximalwert der random zahl abgecuttet wird da der Integer wert eigentlich zu klein ist
+                    City c = new City("", RandomHandler.createIntegerFromRange(0, (int) Math.pow(10, 9), r), markets[i], UniverseObjectProperties.OBJECT_CITY);
+                    cities[i] = c;
+
+                    name = cities[i].getName();
+                    population = cities[i].getPopulation();
+
+                    Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\t\tCreate City " + name + " with a Population of " + population);
+                    Thread.sleep(25);
+            }
+            return cities;
+        } catch (Exception e) {
+            System.err.println("City Loop: " + e);
+        }
+        return null;
+    }
+    private Moon[] createMoons(int amount, MathHandler.Vector vec) {
+        
+        try {
+            Moon[] moons = new Moon[amount];
+
+            for (int i = 0; i < amount; i++) {
+                moonIndex++;
+
+                System.err.println("Test moon " + moonIndex);
+
+                mass = UniverseObject.setRandomMass(OBJECT_MOON);
+                radius = UniverseObject.setRandomRadius(OBJECT_MOON);
+                degrees = UniverseObject.setRandomTemperature(OBJECT_MOON);
+
+                vec = UniverseObject.setRandomMoonPosition(vec.getXf(), vec.getYf(), vec.getZf());
+
+                Moon m = new Moon("", vec, mass, radius, degrees, OBJECT_MOON);
+                moons[i] = m;
+
+                name = moons[i].getName();
+
+                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\t\tCreate Moon \nMass: " + mass + " times the earth mass, Radius: " + radius + ", Degrees:  " + degrees + " called " + name);
+                Thread.sleep(25);
+            }
+            return moons;
+        } catch (Exception e) {
+            System.err.println("Moon Loop: " + e);
+            return null;
+        }
+    }
+    private Market[] createMarkets(int amount) {
+        return new Market[amount];
+    }
+    private void loadObjects(int amount) {
+
+
+    }
+    private void updateAvailableObjects(int[] amountIndexes) {
+        for (int i = 0; i < amountIndexes.length; i++) {
+            availableObjects -= amountIndexes[i];
+        }
+    }
+
+    /**
+     * Sets the loading progress from the number of already loaded created objects
+     */
+    public void setLoadProgress() {
+        try {
+            if (context instanceof MainActivity) {
+                ProgressBar pb = (ProgressBar) ((MainActivity) context).findViewById(R.id.loadProgressBar);
+                TextView tv = (TextView) ((MainActivity) context).findViewById(R.id.loadProgressTextView);
+
+                pb.setProgress(objectsToLoad / 100);
+                tv.setText("Load " + objectsToLoad + "/" + (MAX_UNIVERSE_OBJECTS - numberOfAvailableObjects));
+            } else {
+                System.err.println("Wrong context!");
+            }
+        } catch (Exception e) {
+            System.err.println("SetProgressException\n" + e);
+        }
+    }
+    private void addObjectsToLoad(int objectsToLoad) {
+        try {
+            this.objectsToLoad += objectsToLoad;
+//            System.out.println("Objects to load: " + this.objectsToLoad);
+
+        } catch (Exception e) {
+            System.err.println("Add Object To Load Exception\n" + e);
+        }
+    }
+
+    /**
+     * Only resets the temporary properties for the log monitoring
+     */
+    private void resetProperties(){
+        mass = 0;
+        degrees = 0;
+        radius = 0;
+        volume = 0;
+        name = "";
+        population = 0;
+        planetType = 0;
+    }
+}

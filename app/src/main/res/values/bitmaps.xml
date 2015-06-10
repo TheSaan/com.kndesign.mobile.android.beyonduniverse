@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="planet_bitmaps">
+        <item>@drawable/planet_h_1</item>
+    </string-array>
+
+    <string-array name="food_human_bitmaps">
+        <item>@drawable/human_burger</item>
+    </string-array>
+</resources>
