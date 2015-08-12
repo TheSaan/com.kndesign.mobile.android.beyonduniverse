@@ -1,14 +1,14 @@
 package com.thesaan.beyonduniverse.gamecontent;
 
-import com.thesaan.gameengine.android.database.UniverseDatabase;
-import com.thesaan.gameengine.android.ui.GameSurface;
+import com.thesaan.gameengine.android.database.AppDatabase;
+import com.thesaan.gameengine.android.ui.StarMapSurface;
 
 /**
  * Created by mknoe on 04.05.2015.
  */
 public class UniverseMap {
 
-    GameSurface gameSurface;
+    StarMapSurface gameSurface;
 
     StarMapBuilder mapBuilder;
 
@@ -17,7 +17,7 @@ public class UniverseMap {
      * Quiet redundant at the moment
      * @param db
      */
-    public UniverseMap(UniverseDatabase db){
+    public UniverseMap(AppDatabase db){
         mapBuilder = new StarMapBuilder(db);
 
     }

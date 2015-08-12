@@ -15,19 +15,27 @@ import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Planet;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.SolarSystem;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Star;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.UniverseObject;
-import com.thesaan.gameengine.android.database.UniverseDatabase;
+import com.thesaan.gameengine.android.database.AppDatabase;
 import com.thesaan.gameengine.android.handler.MathHandler;
 import com.thesaan.gameengine.android.handler.RandomHandler;
 
 import java.util.Random;
 
 /**
- * Created by mknoe on 28.04.2015.
+ * The Universe class represents the creation algorithm for all objects
+ * which will be created randomly (or if set, also predefined objects).
+ * <p/>
+ * There are some constants in {@link UniverseObjectProperties} which
+ * define the final size or amounts for all included objects.
+ * <p/>
+ * Also included is the call for adding the created objects to {@link AppDatabase}
+ * or {@link com.thesaan.gameengine.android.database.ServerDatabase} if the implementation
+ * is done.
  */
 public class Universe implements UniverseObjectProperties {
 
     Context context;
-    UniverseDatabase uDb;
+    AppDatabase uDb;
 
     //laoding
     float loadProgress = 0;
@@ -70,13 +78,14 @@ public class Universe implements UniverseObjectProperties {
 
     /**
      * The universe object creates all objects like galaxies, solar systems, planets (+ thier cities), moons and stars.
-     *
+     * <p/>
      * This class is only for the initializing step before running the game on the market. All created objects will be saved
      * in a server stored database.
+     *
      * @param context
      * @param db
      */
-    public Universe(Context context, UniverseDatabase db) {
+    public Universe(Context context, AppDatabase db) {
 
         this.context = context;
         uDb = db;
@@ -88,16 +97,15 @@ public class Universe implements UniverseObjectProperties {
                 @Override
                 public void run() {
 //                    createWorld();
-//                    createGalaxies(50);
+//                    createGalaxies(5);
+
+                    //test method
+                    uDb.addEmptyGalaxy();
                 }
             });
 
             T.start();
 
-
-//            createPlanets(1, new MathHandler.Vector(2000.0, 2000.0, 2000.0));
-//            createMoons(20,new MathHandler.Vector(2000.0,2000.0,2000.0));
-//            createSolarSystems(1);
         } catch (Exception e) {
             System.err.println("Create Galaxy ERROR: ");
             e.printStackTrace();
@@ -105,35 +113,44 @@ public class Universe implements UniverseObjectProperties {
 
     }
 
+    /**
+     * Set the status of for the loading progress bar
+     * //TODO not implemented
+     *
+     * @param progress
+     */
     public void setLoadingProgressBar(int progress) {
 
     }
 
-    private void createGalaxies(int amount){
+    /**
+     * Creates a certain amount of {@link Galaxy}s with a
+     * certain amount of {@link SolarSystem}s
+     * @param amount
+     */
+    private void createGalaxies(int amount, int amountOfSystems) {
 
-        SolarSystem[] systems;
-        try {
-            systems = createSolarSystems(10);
-        }catch (Exception e){
-            System.err.println("Failed to create Solarsystem!\n"+e);
-            systems = null;
-        }
 
-        Galaxy g = new Galaxy("MilchStraße",UniverseObject.setRandomVolume(OBJECT_GALAXY),UniverseObject.setRandomPosition(OBJECT_GALAXY),systems,OBJECT_GALAXY);
+        Galaxy g = new Galaxy("Milchstraße", UniverseObject.setRandomVolume(OBJECT_GALAXY), OBJECT_GALAXY);
+        g.setSolarSystems(createSolarSystems(amountOfSystems, g));
         uDb.addGalaxy(g);
-        for(int i = 0;i< amount-1;i++){
-            g = new Galaxy("",UniverseObject.setRandomVolume(OBJECT_GALAXY),UniverseObject.setRandomPosition(OBJECT_GALAXY),systems,OBJECT_GALAXY);
+
+        g = new Galaxy("Andromeda", UniverseObject.setRandomVolume(OBJECT_GALAXY), OBJECT_GALAXY);
+        g.setSolarSystems(createSolarSystems(amountOfSystems, g));
+        uDb.addGalaxy(g);
+
+        for (int i = 0; i < amount - 2; i++) {
+            g = new Galaxy("", UniverseObject.setRandomVolume(OBJECT_GALAXY), OBJECT_GALAXY);
+            g.setSolarSystems(createSolarSystems(amountOfSystems, g));
             uDb.addGalaxy(g);
         }
-        Log.v("GALAXY", "Name: " + g.getName() + " SS: " + g.getSolarsystems().length);
 
     }
+
     private Galaxy[] createWorld() {
-        
+
         try {
             Random r = new Random();
-            int numberOfRestObjects = MAX_UNIVERSE_OBJECTS;
-
             int amountOfGalaxies = RandomHandler.createIntegerFromRange(50, numberOfAllowedGalaxies, r);
             Galaxy[] galaxies = new Galaxy[amountOfGalaxies];
 
@@ -147,28 +164,21 @@ public class Universe implements UniverseObjectProperties {
                 //count created galaxies
                 galaxyIndex++;
 
-                addObjectsToLoad(numberOfSolarsystems);
-
-
-                //position
-                MathHandler.Vector vec = UniverseObject.setRandomPosition(OBJECT_GALAXY);
-
                 //the volume
                 volume = UniverseObject.setRandomVolume(OBJECT_GALAXY);
 
-                System.err.println("Test galaxy " + galaxyIndex);
+                Galaxy g = new Galaxy("", volume, OBJECT_GALAXY);
 
                 //create solar systems for galaxy
-                SolarSystem[] solarSystems = createSolarSystems(numberOfSolarsystems);
-
-
+                SolarSystem[] solarSystems = createSolarSystems(numberOfSolarsystems, g);
                 //test
                 solarsystems2 = solarSystems.length;
-                X = vec.getXf();
-                Y = vec.getYf();
-                Z = vec.getZf();
 
-                Galaxy g = new Galaxy("", volume, vec, solarSystems, OBJECT_GALAXY);
+                g.setSolarSystems(solarSystems);
+
+                X = g.getPosition().getXf();
+                Y = g.getPosition().getYf();
+                Z = g.getPosition().getZf();
                 //test
 
                 //new galaxy with random data
@@ -177,16 +187,8 @@ public class Universe implements UniverseObjectProperties {
                 name = galaxies[i].getName();
 
                 Log.v(LOG_TAG_CREATE_WORLD_INFO, "Create galaxy at positionX: " + X + "\nY: " + Y + "\nZ: " + Z + " with\n" + solarsystems2 + " solarsystems.\n Volume: " + volume + " and called " + name);
-                try {
 
-                    Thread.sleep(25);
-                } catch (Exception we) {
-                    System.err.println("Wait error\n" + we);
-                }
             }
-
-            //update the amount of objects who are not set yet and are free to get filled
-            updateAvailableObjects(amountIndexes);
 
             return galaxies;
         } catch (Exception e) {
@@ -194,46 +196,50 @@ public class Universe implements UniverseObjectProperties {
             return null;
         }
     }
-    private SolarSystem[] createSolarSystems(int amount) {
+
+    /**
+     * Creates {@link SolarSystem}s in the parent {@link Galaxy}
+     * @param amount
+     * @param parent
+     * @return
+     */
+    private SolarSystem[] createSolarSystems(int amount, Galaxy parent) {
         try {
             SolarSystem[] solarSystems = new SolarSystem[amount];
 
             for (int i = 0; i < solarSystems.length; i++) {
 
                 solarSystemIndex++;
-                //position
-                MathHandler.Vector vec = UniverseObject.setRandomPosition(OBJECT_SOLARSYSTEM);
+
                 //the volume
                 volume = UniverseObject.setRandomVolume(OBJECT_SOLARSYSTEM);
                 //the radius = the width /2
                 try {
 
-                    radius = (float)MathHandler.squareRootX(volume, 1.0f/3.0f) / 2.0f;
-                }catch (Exception e){
-                    System.err.println("CalcRadiusEx: " +e);
+                    radius = (float) MathHandler.squareRootX(volume, 1.0f / 3.0f) / 2.0f;
+                } catch (Exception e) {
+                    System.err.println("CalcRadiusEx: " + e);
                 }
-                System.err.println("Test ss " + solarSystemIndex);
                 //the stars will be created in the middle of the solar System
-                Star[] stars = createStars(vec);
-                Planet[] planets = createPlanets(RandomHandler.createIntegerFromRange(0, 20, r), vec);
-
-                addObjectsToLoad(stars.length);
-                addObjectsToLoad(planets.length);
 
                 //test
-                planets2 = planets.length;
-                stars2 = stars.length;
-                X = vec.getXf();
-                Y = vec.getYf();
-                Z = vec.getZf();
+                SolarSystem s = new SolarSystem("", volume, parent, radius, OBJECT_SOLARSYSTEM);
 
-                //test
-                SolarSystem s = new SolarSystem("",volume, vec, stars, planets, radius, OBJECT_SOLARSYSTEM);
+                Star[] stars = createStars(s.getPosition());
+                Planet[] planets = createPlanets(RandomHandler.createIntegerFromRange(0, 20, r), s.getPosition());
+
+                s.setStars(stars);
+                s.setPlanets(planets);
+
+                X = s.getPosition().getXf();
+                Y = s.getPosition().getYf();
+                Z = s.getPosition().getZf();
+
                 solarSystems[i] = s;
 
                 name = solarSystems[i].getName();
 
-                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\tCreate solarsystem at position \n" + "X: " + X + "\nY: " + Y + "\nZ: " + Z + "\\nwith " + planets2 + " planets and " + stars2 + " Star(s)." + " And called " + name);
+                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\tCreate solarsystem at position \n" + "X: " + X + "\nY: " + Y + "\nZ: " + Z + "\nwith " + planets2 + " planets and " + stars2 + " Star(s)." + " And called " + name);
 
                 //Thread.sleep(25);
             }
@@ -243,8 +249,15 @@ public class Universe implements UniverseObjectProperties {
             return null;
         }
     }
+
+    /**
+     * Creates {@link Planet}s in the parent solar system
+     * @param amount
+     * @param solarSystemPosition
+     * @return
+     */
     private Planet[] createPlanets(int amount, MathHandler.Vector solarSystemPosition) {
-        
+
 
         Planet[] planets = new Planet[amount];
 
@@ -255,8 +268,6 @@ public class Universe implements UniverseObjectProperties {
             for (int i = 0; i < planets.length; i++) {
 
                 planetIndex++;
-
-                System.err.println("Test planet " + planetIndex);
 
                 MathHandler.Vector vec = UniverseObject.setRandomPlanetPosition(solarSystemPosition.getXf(), solarSystemPosition.getYf(), solarSystemPosition.getZf());
                 if (vec == null)
@@ -269,8 +280,7 @@ public class Universe implements UniverseObjectProperties {
                         planetType = PLANET_TYPE_SNOW;
                     } else if (degrees < 35 && degrees > 3) {
                         planetType = UniverseObject.setRandomPlanetType();
-                    } else
-                    if(degrees > 45 && degrees < MAX_TEMPERATURE_TO_SURVIVE){
+                    } else if (degrees > 45 && degrees < MAX_TEMPERATURE_TO_SURVIVE) {
                         planetType = PLANET_TYPE_DESSERT;
                     }
                     cities = createCities(RandomHandler.createIntegerFromRange(0, 5, r));
@@ -288,7 +298,7 @@ public class Universe implements UniverseObjectProperties {
                     }
                     cities = null;
                 }
-                System.err.println("Planet C°: " + degrees + "\nPlanettype: "+Planet.getPlanetTypeName(planetType));
+                System.err.println("Planet C°: " + degrees + "\nPlanet type: " + Planet.getPlanetTypeName(planetType));
 
                 Moon[] moons = createMoons(RandomHandler.createIntegerFromRange(0, MAX_MOONS_FOR_PLANET, r), vec);
 
@@ -307,7 +317,7 @@ public class Universe implements UniverseObjectProperties {
                 else
                     System.err.println("No cities. Planet is not habitable!");
 
-                Planet p = new Planet("",vec, mass, radius, moons, cities, degrees, OBJECT_PLANET, planetType);
+                Planet p = new Planet("", vec, mass, moons, cities, degrees, OBJECT_PLANET, planetType);
                 planets[i] = p;
 
                 name = planets[i].getName();
@@ -318,17 +328,18 @@ public class Universe implements UniverseObjectProperties {
             }
             return planets;
         } catch (Exception e) {
-            System.err.println("Planet "+planetIndex+" Loop: " + e);
+            System.err.println("Planet " + planetIndex + " Loop: " + e);
             return null;
         }
     }
+
     /**
      * Creates a single star or with a minimal probability a twin star 1:10000
      *
      * @return
      */
     private Star[] createStars(MathHandler.Vector vec) {
-        
+
 
         try {
             int amount;
@@ -356,17 +367,15 @@ public class Universe implements UniverseObjectProperties {
                         vec.setX(tempX * 1.001);
                 }
                 starIndex++;
-                System.err.println("Test star " + starIndex);
                 mass = UniverseObject.setRandomMass(OBJECT_STAR);
-                radius = UniverseObject.setRandomRadius(OBJECT_STAR);
                 degrees = UniverseObject.setRandomTemperature(OBJECT_STAR);
 
-                Star s = new Star("", vec, mass, radius, degrees, OBJECT_STAR);
+                Star s = new Star("", vec, mass, degrees, OBJECT_STAR);
                 stars[i] = s;
 
                 name = stars[i].getName();
 
-                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\tCreate star with Mass: " + mass + " Temperature: " + degrees + " Radius: " + radius + " and called " + name);
+                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\tCreate star with Mass: " + mass + " Temperature: " + degrees + " Radius: " + s.getRadius() + " and called " + name);
                 try {
 
                     Thread.sleep(25);
@@ -382,8 +391,15 @@ public class Universe implements UniverseObjectProperties {
 
 
     }
+
+    /**
+     * If the parent Planet is habitable, maybe create cities on it.
+     *
+     * @param amount
+     * @return
+     */
     private City[] createCities(int amount) {
-        
+
 
         City[] cities = new City[amount];
         Market[] markets = new Market[amount];
@@ -405,14 +421,14 @@ public class Universe implements UniverseObjectProperties {
 //                System.err.println("i " + i);
 
                 //TODO Hier könnte es sein, dass der Maximalwert der random zahl abgecuttet wird da der Integer wert eigentlich zu klein ist
-                    City c = new City("", RandomHandler.createIntegerFromRange(0, (int) Math.pow(10, 9), r), markets[i], UniverseObjectProperties.OBJECT_CITY);
-                    cities[i] = c;
+                City c = new City("", RandomHandler.createIntegerFromRange(0, (int) Math.pow(10, 9), r), markets[i], UniverseObjectProperties.OBJECT_CITY);
+                cities[i] = c;
 
-                    name = cities[i].getName();
-                    population = cities[i].getPopulation();
+                name = cities[i].getName();
+                population = cities[i].getPopulation();
 
-                    Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\t\tCreate City " + name + " with a Population of " + population);
-                    Thread.sleep(25);
+                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\t\tCreate City " + name + " with a Population of " + population);
+                Thread.sleep(25);
             }
             return cities;
         } catch (Exception e) {
@@ -420,28 +436,33 @@ public class Universe implements UniverseObjectProperties {
         }
         return null;
     }
+
+    /**
+     * Creates some Moons arround the planet.
+     *
+     * @param amount
+     * @param vec
+     * @return
+     */
     private Moon[] createMoons(int amount, MathHandler.Vector vec) {
-        
+
         try {
             Moon[] moons = new Moon[amount];
 
             for (int i = 0; i < amount; i++) {
                 moonIndex++;
 
-                System.err.println("Test moon " + moonIndex);
-
                 mass = UniverseObject.setRandomMass(OBJECT_MOON);
-                radius = UniverseObject.setRandomRadius(OBJECT_MOON);
                 degrees = UniverseObject.setRandomTemperature(OBJECT_MOON);
 
                 vec = UniverseObject.setRandomMoonPosition(vec.getXf(), vec.getYf(), vec.getZf());
 
-                Moon m = new Moon("", vec, mass, radius, degrees, OBJECT_MOON);
+                Moon m = new Moon("", vec, mass, degrees, OBJECT_MOON);
                 moons[i] = m;
 
                 name = moons[i].getName();
 
-                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\t\tCreate Moon \nMass: " + mass + " times the earth mass, Radius: " + radius + ", Degrees:  " + degrees + " called " + name);
+                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\t\tCreate Moon \nMass: " + mass + " times the earth mass, Radius: " + m.getRadius() + ", Degrees:  " + degrees + " called " + name);
                 Thread.sleep(25);
             }
             return moons;
@@ -450,18 +471,17 @@ public class Universe implements UniverseObjectProperties {
             return null;
         }
     }
+
+    /**
+     * Creates {@link Market}s for all cities.
+     *
+     * @param amount
+     * @return
+     */
     private Market[] createMarkets(int amount) {
         return new Market[amount];
     }
-    private void loadObjects(int amount) {
 
-
-    }
-    private void updateAvailableObjects(int[] amountIndexes) {
-        for (int i = 0; i < amountIndexes.length; i++) {
-            availableObjects -= amountIndexes[i];
-        }
-    }
 
     /**
      * Sets the loading progress from the number of already loaded created objects
@@ -481,6 +501,7 @@ public class Universe implements UniverseObjectProperties {
             System.err.println("SetProgressException\n" + e);
         }
     }
+
     private void addObjectsToLoad(int objectsToLoad) {
         try {
             this.objectsToLoad += objectsToLoad;
@@ -494,7 +515,7 @@ public class Universe implements UniverseObjectProperties {
     /**
      * Only resets the temporary properties for the log monitoring
      */
-    private void resetProperties(){
+    private void resetProperties() {
         mass = 0;
         degrees = 0;
         radius = 0;

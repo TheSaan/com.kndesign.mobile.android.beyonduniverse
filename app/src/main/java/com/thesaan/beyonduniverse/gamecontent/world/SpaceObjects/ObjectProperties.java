@@ -11,7 +11,7 @@ public interface ObjectProperties {
     public final static float ENERGY_MULTIPLIER = 5.56f;
     public void onRotate(float angle, int mode, int direction, int axis);
     public void onMove(float x, float y, float z);
-    public void onScale(float factor);
+    public void onZoom(float factor);
     public float getX();
     public float getY();
     public float getZ();

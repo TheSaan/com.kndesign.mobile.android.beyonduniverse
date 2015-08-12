@@ -6,7 +6,7 @@ import android.graphics.Paint;
 import android.view.SurfaceHolder;
 
 import com.thesaan.gameengine.android.handler.MathHandler;
-import com.thesaan.gameengine.android.ui.GameSurface;
+import com.thesaan.gameengine.android.ui.StarMapSurface;
 
 
 /**
@@ -180,7 +180,7 @@ public class CoordinateSystem3D {
         private float myStartX,myStartZ,myStartY,myEndX,myEndZ,myEndY;
 
         //to get the touch event
-        private GameSurface myScreen;
+        private StarMapSurface myScreen;
 
         float top,bottom,left,right;
         float centerX;
@@ -205,7 +205,7 @@ public class CoordinateSystem3D {
          * @param edges
          * @param surfaceView
          */
-        public CoordinateAxis(Coordinate start, Coordinate end, float[] edges, GameSurface surfaceView, int axis){
+        public CoordinateAxis(Coordinate start, Coordinate end, float[] edges, StarMapSurface surfaceView, int axis){
 
             synchronized(this){
                 myScreen = surfaceView;
@@ -284,7 +284,7 @@ public class CoordinateSystem3D {
         private void setAxisName(String name){
             myAxis = name;
         }
-        public void setMyScreen(GameSurface s){
+        public void setMyScreen(StarMapSurface s){
             myScreen = s;
         }
 
@@ -318,12 +318,12 @@ public class CoordinateSystem3D {
         }
         public static int getDirection(int direction){
             switch (direction){
-                case GameSurface.DIRECTION_LEFT:
-                case GameSurface.DIRECTION_UP:{
+                case StarMapSurface.DIRECTION_LEFT:
+                case StarMapSurface.DIRECTION_UP:{
                     return  -1;
                 }
-                case GameSurface.DIRECTION_RIGHT:
-                case GameSurface.DIRECTION_DOWN:{
+                case StarMapSurface.DIRECTION_RIGHT:
+                case StarMapSurface.DIRECTION_DOWN:{
                     return  1;
                 }
                 default:

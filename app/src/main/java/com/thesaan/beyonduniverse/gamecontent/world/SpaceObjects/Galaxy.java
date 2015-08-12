@@ -9,17 +9,16 @@ import com.thesaan.gameengine.android.handler.MathHandler;
 public class Galaxy extends UniverseObject implements ObjectProperties,UniverseObjectProperties{
 
 
-    public Galaxy(String name, float volume, MathHandler.Vector position,SolarSystem[] solarSystems, int type){
-        super(name,position,type);
+    public Galaxy(String name, float volume, int type){
+        super(name,type);
 
         this.solarSystems = solarSystems;
         this.volume = volume;
         this.radius = (float) Math.pow(volume, (1.0 / 3.0));
 
-    } public Galaxy(String name, float volume, MathHandler.Vector position, int type){
-        super(name,position,type);
+    }
 
-        this.volume = volume;
-        this.radius = (float) Math.pow(volume, (1.0 / 3.0));
+    public void setSolarSystems(SolarSystem[] solarSystems){
+        this.solarSystems = solarSystems;
     }
 }

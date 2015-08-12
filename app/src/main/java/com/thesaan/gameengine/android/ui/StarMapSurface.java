@@ -29,10 +29,12 @@ import com.thesaan.beyonduniverse.gamecontent.*;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Galaxy;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Planet;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.SolarSystem;
+import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Star;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.UniverseObject;
 import com.thesaan.beyonduniverse.gamecontent.world.Universe;
 import com.thesaan.gameengine.android.DB_Settings;
-import com.thesaan.gameengine.android.database.UniverseDatabase;
+import com.thesaan.gameengine.android.Settings;
+import com.thesaan.gameengine.android.database.AppDatabase;
 import com.thesaan.gameengine.android.drawables.CoordinateSystem3D;
 import com.thesaan.gameengine.android.drawables.forms.Cube;
 import com.thesaan.gameengine.android.drawables.forms.Form;
@@ -44,29 +46,55 @@ import static com.thesaan.gameengine.android.handler.MathHandler.*;
 /**
  * Created by mknoe on 17.04.2015.
  */
-public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, GestureDetector.OnGestureListener {
-
-
-    Bitmap galaxy1;
-    Bitmap universeImage;
-    Bitmap[] galaxyBitmaps;
-    Bitmap[] planetBitmaps;
-
-    public final static int PAN_MODE = TranslationMatrix.Z_AXIS;
-    public final static int ROLL_MODE = TranslationMatrix.Y_AXIS;
-    public final static int TILT_MODE = TranslationMatrix.X_AXIS;
-
-    public final static int DIRECTION_UP = 10;
-    public final static int DIRECTION_DOWN = 11;
-    public final static int DIRECTION_LEFT = 12;
-    public final static int DIRECTION_RIGHT = 13;
-
-    long waitValue = 50;
+public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callback, GestureDetector.OnGestureListener {
 
     /**
-     * Selects the amount of objects where its data will be shown at its position
+     * Background image for a universe effect
      */
-    int numberOfObjectsToPrintData = 6;
+    Bitmap universeImage;
+    /**
+     * Bitmap array with all possible planet bitmaps, which are currently needed in the
+     * solar system.
+     */
+    Bitmap[] planetBitmaps;
+
+    /**
+     * Equals the mathematical Y-Axis.
+     */
+    public final static int PAN_MODE = TranslationMatrix.Z_AXIS;
+    /**
+     * Equals the mathematical X-Axis. Because in the two dimensional
+     * surface only x & Y exists and z (depth) is a simulated value.
+     */
+    public final static int ROLL_MODE = TranslationMatrix.Y_AXIS;
+    /**
+     * Equals the mathematical Z-Axis. So the calculated X-Axis is
+     * the depth of the two dimensional surface.
+     */
+    public final static int TILT_MODE = TranslationMatrix.X_AXIS;
+
+    /**
+     * Identifier for the movement action UP
+     */
+    public final static int DIRECTION_UP = 10;
+    /**
+     * Identifier for the movement action DOWN
+     */
+    public final static int DIRECTION_DOWN = 11;
+    /**
+     * Identifier for the movement action LEFT
+     */
+    public final static int DIRECTION_LEFT = 12;
+    /**
+     * Identifier for the movement action RIGHT
+     */
+    public final static int DIRECTION_RIGHT = 13;
+
+    /**
+     * Defines a break between every canvas redraw frame. This is
+     * only used for testing purposes.
+     */
+    long waitValue = 50;
 
     /**
      * The maximum distance for selection when touching close to an object
@@ -78,7 +106,15 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
      */
     public boolean isLocked = false;
 
+    /**
+     * Proof if the axises are already set
+     */
     boolean axisesAvailable = false;
+    /**
+     * Proof if the axises positions gets calculeted
+     * on the upper left corner on the surface to
+     * calculate the positions correctly
+     */
     boolean axisesOnScreenOrigin = false;
 
     /**
@@ -86,7 +122,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
      */
     private float mScaleFactor = 1.0f;
     /**
-     * If this is true, the onScale methods gets called by the objects to draw
+     * If this is true, the onZoom methods gets called by the objects to draw
      */
     boolean inScaleMode = false;
 
@@ -106,7 +142,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
      */
     public float touchedX, touchedY;
 
-    //the surface dimension
+    /**
+     * The surface dimension
+     */
     int width, height;
 
     /**
@@ -146,7 +184,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
     float top, bottom, left, right;
 
     /**
-     * All for edges of the surface view
+     * All four edges of the surface view
      */
     public static float[] surfaceEdges = new float[4];
 
@@ -155,13 +193,16 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
      */
     StarMapBuilder builder;
 
-    public static final int STAR_MAP_LAYER_MODE_UNIVERSE = 10;
-    public static final int STAR_MAP_LAYER_MODE_GALAXY = 11;
-    public static final int STAR_MAP_LAYER_MODE_SOLARSYSTEM = 12;
+    //represents the currently opened Object
+    UniverseObject currParent;
+
+    public static final int STAR_MAP_LAYER_MODE_UNIVERSE = 16;
+    public static final int STAR_MAP_LAYER_MODE_GALAXY = 15;
+    public static final int STAR_MAP_LAYER_MODE_SOLARSYSTEM = 14;
     public static final int STAR_MAP_LAYER_MODE_PLANET = 13;
-    public static final int STAR_MAP_LAYER_MODE_MOON = 14;
-    public static final int STAR_MAP_LAYER_MODE_STAR = 15;
-    public static final int STAR_MAP_LAYER_MODE_CITY = 16;
+    public static final int STAR_MAP_LAYER_MODE_MOON = 12;
+    public static final int STAR_MAP_LAYER_MODE_STAR = 11;
+    public static final int STAR_MAP_LAYER_MODE_CITY = 10;
     /**
      * The current map view mode. Default is {@link #STAR_MAP_LAYER_MODE_UNIVERSE}
      * <p>Other modes:</p>
@@ -182,7 +223,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
     boolean isCoordinateSystemDrawn = false;
 
     /**
-     * The action which is running in {@link com.thesaan.gameengine.android.ui.GameSurface.GameThread}
+     * The action which is running in {@link com.thesaan.gameengine.android.ui.StarMapSurface.GameThread}
      */
     public int runAction;
 
@@ -196,43 +237,43 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
     GestureDetector mGestureDetector;
 
     /*----------------------------------------CONSTRUCTORS-----------------------------------*/
-    public GameSurface(Context context, AttributeSet attributeSet) {
+    public StarMapSurface(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
-        if (!isInEditMode()) {
+//        if (!isInEditMode()) {
 
-            scaleGestureDetector = new ScaleGestureDetector(context, new ScaleListener());
+        scaleGestureDetector = new ScaleGestureDetector(context, new ScaleListener());
 
-            mGestureDetector = new GestureDetector(this);
-            //init the bitmap for the canvas
-
-
-            bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
-
-            //init the canvas
-            canvas = new Canvas(bitmap);
-
-            //setBackgroundColor(Color.WHITE);
-            //get the SurfaceHolder
-            holder = getHolder();
-
-            holder.addCallback(this);
-
-            surfaceHandler = new Handler(Looper.getMainLooper()) {
-                @Override
-                public void handleMessage(Message inputMessage) {
-                    //TODO MessageSystem einstellen {@link https://developer.android.com/training/multiple-threads/communicate-ui.html#Handler}
-                }
-            };
+        mGestureDetector = new GestureDetector(this);
+        //init the bitmap for the canvas
 
 
-            //initialize all bitmaps
-            surfaceHandler.post(new BitmapLoader());
+        bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
 
-            //init dimensions
-            setCenter(holder);
-            setScreenEdges(holder);
+        //init the canvas
+        canvas = new Canvas(bitmap);
 
-        }
+        //setBackgroundColor(Color.WHITE);
+        //get the SurfaceHolder
+        holder = getHolder();
+
+        holder.addCallback(this);
+
+        surfaceHandler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(Message inputMessage) {
+                //TODO MessageSystem einstellen {@link https://developer.android.com/training/multiple-threads/communicate-ui.html#Handler}
+            }
+        };
+
+
+        //initialize all bitmaps
+        surfaceHandler.post(new BitmapLoader());
+
+        //init dimensions
+        setCenter(holder);
+        setScreenEdges(holder);
+
+//        }
     }
 
     /*----------------------------------------TESTERS-----------------------------------*/
@@ -247,9 +288,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
 
         int action = MotionEventCompat.getActionMasked(event);
         int index = MotionEventCompat.getActionIndex(event);
-        int fingersOnScreen = event.getPointerCount();
 
 
+        scaleGestureDetector.onTouchEvent(event);
         mGestureDetector.onTouchEvent(event);
 
         setCenter(holder);
@@ -328,7 +369,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
                     scaleGestureDetector.onTouchEvent(event);
 
                     System.out.println("MOVE");
-                    onScaleMap();
+                    onZoom();
                 }
             }
         }
@@ -375,6 +416,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
     }
     /*----------------------------------------GETTERS-----------------------------------*/
 
+    /**
+     * @return Use the object which was selected to get its direct children.
+     */
     private UniverseObject[][] getObjectsByStarMapMode() {
         UniverseObject[][] object = new UniverseObject[2][];
         switch (getStarMapMode()) {
@@ -420,26 +464,46 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
      *
      * @return
      */
-    private GameSurface getMe() {
+    private StarMapSurface getMe() {
         return this;
+    }
+
+    /**
+     * Example: If you've selected a Galaxy and you are in
+     * Starmapmode SOLARSYSTEMS than it returns the Galaxy
+     * you've selected before.
+     *
+     * @return {@link UniverseObject}
+     */
+    protected UniverseObject getCurrentParent() {
+        return currParent;
     }
 
     public float getmScaleFactor() {
         return mScaleFactor;
     }
 
-    public String getStarmapModeDescription(){
-        switch (getStarMapMode()){
-            case STAR_MAP_LAYER_MODE_UNIVERSE:return "Universe";
-            case STAR_MAP_LAYER_MODE_GALAXY:return "Galaxy";
-            case STAR_MAP_LAYER_MODE_SOLARSYSTEM:return "Solarsystem";
-            case STAR_MAP_LAYER_MODE_STAR:return "Star";
-            case STAR_MAP_LAYER_MODE_PLANET:return "Planet";
-            case STAR_MAP_LAYER_MODE_MOON:return "Moon";
-            case STAR_MAP_LAYER_MODE_CITY:return "City";
-            default:return "No Starmap mode detected!";
+    public String getStarmapModeDescription() {
+        switch (getStarMapMode()) {
+            case STAR_MAP_LAYER_MODE_UNIVERSE:
+                return "\tModus: Universe\n";
+            case STAR_MAP_LAYER_MODE_GALAXY:
+                return "\tModus: Galaxy\n";
+            case STAR_MAP_LAYER_MODE_SOLARSYSTEM:
+                return "\tModus: Solarsystem\n";
+            case STAR_MAP_LAYER_MODE_STAR:
+                return "\tModus: Star\n";
+            case STAR_MAP_LAYER_MODE_PLANET:
+                return "\tModus: Planet\n";
+            case STAR_MAP_LAYER_MODE_MOON:
+                return "\tModus: Moon\n";
+            case STAR_MAP_LAYER_MODE_CITY:
+                return "\tModus: City\n";
+            default:
+                return "\tModus: No Starmap mode detected!\n";
         }
     }
+
     /**
      * Gets the current map view mode {@link #starMapMode}
      *
@@ -449,17 +513,27 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
         return starMapMode;
     }
 
-    public String getObjectTypeDescription(String objectName){
+    /**
+     * Gets the type name out of the unique random name of the object.
+     * E.g. "G.OIADFF.646652", it takes out the "G" and returns "Galaxy".
+     *
+     * @param objectName
+     * @return
+     */
+    public String getObjectTypeDescription(String objectName) {
         String[] parts = objectName.split("\\.");
-        if(parts[0] == "SS")return "Solar system";
-        if(parts[0] == "G")return "Galaxy";
-        if(parts[0] == "P")return "Planet";
-        if(parts[0] == "M")return "Moon";
-        if(parts[0] == "C")return "City";
-        if(parts[0] == "S")return "Star";
-        //TODO Named objects as an array loop for detection
-        if(objectName == "MilchStraße") return "Galaxy";
-        else return "no object";
+        if (parts[0] == "SS") return "Solar system";
+        else if (parts[0] == "G") return "Galaxy";
+        else if (parts[0] == "P") return "Planet";
+        else if (parts[0] == "M") return "Moon";
+        else if (parts[0] == "C") return "City";
+        else if (parts[0] == "S") return "Star";
+        else
+            //TODO Named objects as an array loop for detection
+            //special names
+            if (objectName == "Milchstraße") return "Galaxy";
+            else if (objectName == "Andromeda") return "Galaxy";
+            else return "Unknown object";
     }
     /*----------------------------------------SETTERS-----------------------------------*/
 
@@ -482,6 +556,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
         centerY = holder.getSurfaceFrame().centerY();
     }
 
+    /**
+     * Defines the edges (Positions) of the certain screen or surface
+     *
+     * @param holder
+     */
     private void setScreenEdges(SurfaceHolder holder) {
         top = holder.getSurfaceFrame().top + 1;
         bottom = holder.getSurfaceFrame().bottom;
@@ -567,7 +646,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
     }
 
     /**
-     * Sets the pivot for drawing a wireframe (or surfaced) {@link Cube}
+     * Sets the pivot for drawing a wireframe (or surfaced) {@link Cube}.
      *
      * @param x
      * @param y
@@ -577,12 +656,38 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
         cubeAnkerX = x;
     }
 
-    protected void setStarMapMode(int mode) {
+    public void setStarMapMode(int mode) {
         starMapMode = mode;
-        if(getContext() instanceof MainActivity) {
+        if (getContext() instanceof MainActivity) {
             ((MainActivity) getContext()).setStarMapModeInfo(getStarmapModeDescription());
         }
     }
+
+    /**
+     * Get one step deeper in the starmap mode (until {@link #STAR_MAP_LAYER_MODE_CITY}).
+     */
+    protected void setStarMapLayerDown() {
+        if (getStarMapMode() > STAR_MAP_LAYER_MODE_CITY)
+            setStarMapMode(getStarMapMode() - 1);
+    }
+
+    /**
+     * Get one step higher in the starmap mode (until {@link #STAR_MAP_LAYER_MODE_UNIVERSE}).
+     */
+    protected void setStarMapLayerUp() {
+        if (getStarMapMode() < STAR_MAP_LAYER_MODE_UNIVERSE)
+            setStarMapMode(getStarMapMode() + 1);
+    }
+
+    /**
+     * Goes back to universal starmap to see the galaxies again
+     */
+    public void goToUniverseMode() {
+        surfaceHandler.post(new GameThread(GameThread.ACTION_DRAW_UNIVERSE_MAP, builder.getGalaxies(), 0, -1, -1, -1));
+    }
+
+
+
 
     /*----------------------------------------DRAWING METHODS-----------------------------------*/
 
@@ -632,7 +737,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
     }
 
     /**
-     * Calls the {@link com.thesaan.gameengine.android.ui.GameSurface.GameThread#post(Runnable)} to draw
+     * Calls the {@link com.thesaan.gameengine.android.ui.StarMapSurface.GameThread#post(Runnable)} to draw
      * the universe objects with the rotation data
      *
      * @param distance  The actual angle
@@ -642,16 +747,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
      */
     protected void rotate(float distance, int mode, int direction, int axis) {
         surfaceHandler.post(new GameThread(GameThread.ACTION_DRAW_UNIVERSE_MAP, builder.getGalaxies(), distance, mode, direction, axis));
-    }
-
-    private void clearCanvas(int color) {
-
-    }
-
-    protected void onScaleMap() {
-
-//        canvas.drawColor(Color.BLACK);
-        surfaceHandler.post(new GameThread(GameThread.ACTION_SCALE));
     }
 
     /**
@@ -702,7 +797,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
     }
 
     /**
-     * Calls {@link com.thesaan.gameengine.android.ui.GameSurface.GameThread} to animate the player (or spaceship,...) image.
+     * Calls {@link com.thesaan.gameengine.android.ui.StarMapSurface.GameThread} to animate the player (or spaceship,...) image.
      */
     public void animatePlayer() {
         surfaceHandler.post(new GameThread(GameThread.ACTION_DRAW_PLAYER_ANIMATION, cubeAnkerX, cubeAnkerY, touchedX, touchedY, 10));
@@ -763,6 +858,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         try {
+            System.out.println("onFling()");
             if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH) {
                 return false;
             }
@@ -807,22 +903,33 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
 
     @Override
     protected void onDraw(Canvas canvas) {
-        isClearable = 2;
-        while (isClearable > 0) {
-            canvas.drawColor(Color.BLACK);
-            isClearable--;
-        }
+//        isClearable = 2;
+//        while (isClearable > 0) {
+//            canvas.drawColor(Color.BLACK);
+//            isClearable--;
+//        }
+//
+////        canvas.drawColor(Color.BLACK);
+//        holder.unlockCanvasAndPost(canvas);
+    }
 
-//        canvas.drawColor(Color.BLACK);
-        holder.unlockCanvasAndPost(canvas);
+    /**
+     * Zooms into starmap field at the center of the zoom gesture
+     * TODO not implemented yet
+     */
+    public void onZoom() {
+
     }
     /*----------------------------------------RUNNABLES-----------------------------------*/
 
     /**
-     * Handles all actual drawing processes
+     * Handles all drawing processes for the star map
      */
     public class GameThread extends Thread implements Runnable {
 
+        /**
+         * These constants define  which action is going to get started
+         */
         public final static int ACTION_DRAW_3D_SYSTEM = 0;
         public final static int ACTION_DRAW_DOT = 1;
         public final static int ACTION_DRAW_UNIVERSE_MAP = 2;
@@ -841,8 +948,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
         CoordinateSystem3D.CoordinateAxis.Coordinate zS, zE, yS, yE, xS, xE;
         CoordinateSystem3D.CoordinateAxis x, y, z;
         private int mAction;
+        //contains the origin objects in the game universe
         Galaxy[] galaxies;
-        UniverseObject[][] objects;
+        //contains either galaxies, or solar systems
+        UniverseObject[] currentObjects;
+        //contains children of solar systems (Planets, stars) or of planets (cities,moons)
+        UniverseObject[][] multipleObjects;
         private float distance;
 
         private float selectX, selectY;
@@ -974,7 +1085,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
                 }
                 case ACTION_DRAW_UNIVERSE_MAP: {
                     if (!isMapObjectSelected) {
-                        drawUniverseMap();
+                        prepareObjectsForDrawing();
 //                        draw3DCoordinateSystem();
                     }
                     break;
@@ -996,7 +1107,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
                     break;
                 }
                 case ACTION_TOUCH_OBJECT: {
-                    openObject();
+                    if (!isMapObjectSelected) {
+                        selectObject();
+                    } else {
+                        openObject();
+                    }
                     break;
                 }
                 case ACTION_DRAW_PLANET: {
@@ -1034,113 +1149,226 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
             y = g.getY();
             z = g.getZ();
 
-            View info = (View) findViewById(R.id.objectInfoView);
+            View info = findViewById(R.id.objectInfoView);
 
             info.setLeft((int) x);
             info.setBottom((int) y);
-//            info.setLayoutParams(Actio);
+//            info.setLayoutParams(Action);
 
 
         }
 
+        private void setSelectedObject(int mode, UniverseObject[] objects) {
+            Object[] selected = new UniverseObject[objects.length];
+            /*
+            * If the user taps on an object, it is possible that
+            * there are some other objects behind
+            *
+            * the following steps check the hight (Z-Value) of the
+            * tapped objects and chooses the closest one
+            * */
+            int selectedIndex = 0;
+            for (int i = 0; i < objects.length; i++) {
+                //if a galaxy is in the touched range add it to the selected galaxies array
+                if (objects[i].getX() >= selectX - MAX_TOUCH_RANGE && objects[i].getX() <= selectX + MAX_TOUCH_RANGE &&
+                        objects[i].getY() >= selectY - MAX_TOUCH_RANGE && objects[i].getY() <= selectY + MAX_TOUCH_RANGE) {
+                    selected[selectedIndex] = objects[i];
+                    selectedIndex++;
+                }
+            }
 
-        /**
-         * Opens the {@link UniverseObject (Galaxy, Solar system, Planet, Moon, Star)} on touch. By opening this
-         * object, all children like from galaxy -> all solar systems will be drawn now and so on.
-         * <p>If a few objects are stacked in the current camera position, the method compares the z-value
-         * and selects the closest (the highest z-value) one</p>
-         */
-        private void openObject() {
+            //reduce index by one because when the last selected galaxy gets stored, the index will be raised by one also which
+            //is wrong
+            if (selectedIndex > 0)
+                selectedIndex--;
+            //now check the z (depth value) of the selected galaxies and choose this one which has the highest (nearest) value
 
-            if (!isMapObjectSelected) {
-                switch (getStarMapMode()) {
-                    case STAR_MAP_LAYER_MODE_UNIVERSE: {
-                        if (galaxies == null) {
-                            galaxies = builder.getGalaxies();
-                        }
-                        //these are the galaxies which are in the touched range
-                        Galaxy[] selected = new Galaxy[galaxies.length];
-                        int selectedIndex = 0;
-                        for (int i = 0; i < galaxies.length; i++) {
-                            //if a galaxy is in the touched range add it to the selected galaxies array
-                            if (galaxies[i].getX() >= selectX - MAX_TOUCH_RANGE && galaxies[i].getX() <= selectX + MAX_TOUCH_RANGE &&
-                                    galaxies[i].getY() >= selectY - MAX_TOUCH_RANGE && galaxies[i].getY() <= selectY + MAX_TOUCH_RANGE) {
-                                selected[selectedIndex] = galaxies[i];
-                                selectedIndex++;
-                            }
-                        }
+            //make it global
+            selectedObject = getClosestObjectToCamera(objects, selectedIndex);
 
-                        //reduce index by one because when the last selected galaxy gets stored, the index will be raised by one also which
-                        //is wrong
-                        if (selectedIndex > 0)
-                            selectedIndex--;
-                        //now check the z (depth value) of the selected galaxies and choose this one which has the highest (nearest) value
-
-                        //make it global
-                        selectedObject = getClosestObjectToCamera(galaxies, selectedIndex);
-                        Toast.makeText(getContext(), "Open Galaxy " + selectedObject.getName(), Toast.LENGTH_SHORT).show();
 //                          TODO object details open
 //                            try {
 //                                openObjectDetails(selectedObject);
 //                            }catch (InterruptedException ex){
-//                                System.err.println("Thread sleep error in GameSurface.GameThread.goTo()");
+//                                System.err.println("Thread sleep error in GameSurface.GameMapThread.goTo()");
 //                            }
-                        if(getContext() instanceof MainActivity){
-                            ((MainActivity) getContext()).setSelectedObjectInfo("Opened "+getObjectTypeDescription(selectedObject.getName()) + selectedObject.getName());
-                        }
-                        if (!isLocked) {
-                            myCanvas = holder.lockCanvas();
-                            isLocked = true;
-                        }
-                        Paint pnt = new Paint();
-                        pnt.setStyle(Paint.Style.STROKE);
+            if (getContext() instanceof MainActivity) {
+                ((MainActivity) getContext()).setSelectedObjectInfo(selectedObject.getTypeName() + " " + selectedObject.getName() + " opened.");
+            }
 
-                        pnt.setColor(Color.MAGENTA);
-                        pnt.setStrokeWidth(3f);
-                        setStarMapMode(STAR_MAP_LAYER_MODE_GALAXY);
+            //make the sub objects selectable again
+            isMapObjectSelected = true;
+        }
 
-                        myCanvas.drawCircle(selectedObject.getX(), selectedObject.getY(), 25f, pnt);
-//                        isMapObjectSelected = true;
+        /**
+         * When tapping on an object, it gets selected and all data from it gets loaded dynamically.
+         * To open, just tap again on it an {@link GameThread#openObject()} gets called.
+         */
+        private void selectObject() {
+            switch (getStarMapMode()) {
+                case STAR_MAP_LAYER_MODE_UNIVERSE: {
+                    currentObjects = builder.getGalaxies();
+                    setSelectedObject(STAR_MAP_LAYER_MODE_GALAXY, currentObjects);
+                    break;
+                }
+                case STAR_MAP_LAYER_MODE_GALAXY: {
 
+                    currentObjects = builder.getSolarSystems((Galaxy) selectedObject);
+                    System.err.println("Selected object is type of " + selectedObject.getTypeName());
+                    setSelectedObject(STAR_MAP_LAYER_MODE_SOLARSYSTEM, currentObjects);
+
+                    break;
+                }
+                case STAR_MAP_LAYER_MODE_SOLARSYSTEM: {
+
+                    multipleObjects = builder.getSolarSystemChildren((SolarSystem) selectedObject);
+                    System.err.println("Selected object is type of " + selectedObject.getTypeName());
+                    setSelectedObject(STAR_MAP_LAYER_MODE_GALAXY, currentObjects);
+                    break;
+                }
+                case STAR_MAP_LAYER_MODE_STAR: {
+                    if (selectedObject instanceof SolarSystem) {
+                        currentObjects = builder.getSolarSystemChildren((SolarSystem) selectedObject)[0]; //index 0 returns the star(s)
+                        System.err.println("Selected object is type of " + selectedObject.getTypeName());
+                        setSelectedObject(STAR_MAP_LAYER_MODE_GALAXY, currentObjects);
+                    } else {
                     }
-                    case STAR_MAP_LAYER_MODE_GALAXY: {
-
+                    break;
+                }
+                case STAR_MAP_LAYER_MODE_PLANET: {
+                    if (selectedObject instanceof SolarSystem) {
+                        currentObjects = builder.getSolarSystemChildren((SolarSystem) selectedObject)[1]; //index 1 returns the planets
+                        System.err.println("Selected object is type of " + selectedObject.getTypeName());
+                        setSelectedObject(STAR_MAP_LAYER_MODE_GALAXY, currentObjects);
+                    } else {
                     }
-                    case STAR_MAP_LAYER_MODE_SOLARSYSTEM: {
-
+                    break;
+                }
+                case STAR_MAP_LAYER_MODE_MOON: {
+                    if (selectedObject instanceof Planet) {
+                        currentObjects = builder.getPlanetChildren((Planet) selectedObject)[1]; //index 1 returns moons
+                        System.err.println("Selected object is type of " + selectedObject.getTypeName());
+                        setSelectedObject(STAR_MAP_LAYER_MODE_GALAXY, currentObjects);
+                    } else {
                     }
-                    case STAR_MAP_LAYER_MODE_STAR: {
-
+                    break;
+                }
+                case STAR_MAP_LAYER_MODE_CITY: {
+                    if (selectedObject instanceof Planet) {
+                        currentObjects = builder.getPlanetChildren((Planet) selectedObject)[0]; //index 0 returns cities
+                        System.err.println("Selected object is type of " + selectedObject.getTypeName());
+                        setSelectedObject(STAR_MAP_LAYER_MODE_GALAXY, currentObjects);
+                    } else {
                     }
-                    case STAR_MAP_LAYER_MODE_PLANET: {
+                    break;
+                }
+            }
+        }
 
-                    }
-                    case STAR_MAP_LAYER_MODE_MOON: {
+        /**
+         * If the Object was selected by {@link GameThread#selectObject()}, another tap is required to open the object.
+         * <p>
+         * Opens the {@link UniverseObject (Galaxy, Solar system, Planet, Moon, Star)} on touch. By opening this
+         * object, all children like from galaxy -> all solar systems will be drawn now and so on.
+         * </p>
+         * <p/>
+         * <p>If a few objects are stacked in the current camera position, the method compares the z-value
+         * and selects the closest (the highest z-value) one</p>
+         * <p/>
+         */
+        private void openObject() {
 
-                    }
-                    case STAR_MAP_LAYER_MODE_CITY: {
+            if (selectedObject != null) {
 
+                //change map mode by selected object
+                if (selectedObject instanceof Galaxy)
+                    setStarMapLayerDown();
+                else if (selectedObject instanceof SolarSystem) {
+
+                }
+
+
+                if (!isLocked) {
+                    myCanvas = holder.lockCanvas();
+                    isLocked = true;
+                }
+                myCanvas.drawColor(Color.BLACK);
+
+                int mode = getStarMapMode();
+
+                if (mode == STAR_MAP_LAYER_MODE_GALAXY || mode == STAR_MAP_LAYER_MODE_UNIVERSE)
+                    prepareObjectsForDrawing();
+
+                if (mode == STAR_MAP_LAYER_MODE_SOLARSYSTEM) {
+                    if (selectedObject instanceof SolarSystem) {
+                        drawStars(selectedObject.getStars());
                     }
                 }
-            } else {
-                if (selectedObject != null) {
-//                    animateOpener( selectedObject.getX(),  selectedObject.getZ(),  selectedObject.getY(),  selectedObject.getRadius());
 
-                    //delete the showed galaxies and print now the solar systems of the selected galaxy
-
-                    if(!isLocked){
-                        myCanvas = holder.lockCanvas();
-                        isLocked = true;
-                    }
-                    myCanvas.drawColor(Color.BLACK);
-
-                    drawUniverseMap();
+                Toast.makeText(getContext(), "Open " + selectedObject.getTypeName() + " " + selectedObject.getName(), Toast.LENGTH_SHORT).show();
 //                    drawLineal(virtualScaleFactor);
-                    isMapObjectSelected = false;
+                isMapObjectSelected = false;
 
-                } else {
-                    System.err.println("Selected galaxy is null");
+            } else {
+                if (getStarMapMode() != STAR_MAP_LAYER_MODE_UNIVERSE)
+                    prepareObjectsForDrawing();
+            }
+
+        }
+
+        /**
+         * In the first edition of this method the star
+         * just gets drawn by canvas circle
+         * <p/>
+         * in the final step (not yet) the star will be
+         * represented as gif animation
+         * <p/>
+         * just uncomment the lines
+         *
+         * @param stars the current star object to get the data from
+         */
+        private void drawStars(Star[] stars) {
+            if (!isLocked) {
+                myCanvas = holder.lockCanvas();
+                isLocked = true;
+            }
+
+
+            myCanvas.drawColor(Color.BLACK);
+
+            float starRadius = centerX * 0.125f;
+
+            try {
+                Paint p = new Paint();
+                p.setColor(Color.YELLOW);
+//                normal canvas circle version
+                //////////////////////
+                if (stars.length == 1) {
+                    myCanvas.drawCircle(centerX, centerY, starRadius, p);
+                } else if (stars.length == 2) {
+
+                    //this is the rest of the free space width if the stars are drawn
+                    float restWidth = (centerX * 2f) - (starRadius * 2f);
+
+                    float starDistance = restWidth * 0.2f;
+
+                    myCanvas.drawCircle(centerX - (starDistance / 2), centerY, starRadius, p);
+                    p.setColor(Color.RED);
+                    myCanvas.drawCircle(centerX + (starDistance / 2), centerY, starRadius, p);
                 }
+
+                holder.unlockCanvasAndPost(myCanvas);
+                //////////////////////
+//                normal canvas circle version end
+
+//                gif version
+                //////////////////////
+//                BitmapHandler bh = new BitmapHandler(getContext());
+//                bh.playGif(star.getGifFileName());
+                //////////////////////
+//                gif version end
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -1156,11 +1384,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
          */
         private void animateOpener(float x, float y, float z, float radius) {
 
-            UniverseDatabase db = new UniverseDatabase(getContext());
+            AppDatabase db = new AppDatabase(getContext());
 
             db.getNamesOfGalaxies();
 
-            Vector oldPos = db.getPositionOfObject(selectedObject.getName(), getTableFromMapType(getStarMapMode()));
+            Vector oldPos = db.getPositionOfObject(selectedObject.getName(), getMapTypeDBTable(getStarMapMode()));
 
             System.out.println("Old-> X: " + oldPos.getmFloatVec()[0] + " Y: " + oldPos.getmFloatVec()[1] + " Z: " + oldPos.getmFloatVec()[2] + "\n" +
                     "New-> X: " + x + " Y: " + y + " Z: " + z);
@@ -1180,7 +1408,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
          * @return Database table name string
          * @see #getStarMapMode()
          */
-        private String getTableFromMapType(int mapType) {
+        private String getMapTypeDBTable(int mapType) {
             switch (mapType) {
                 case STAR_MAP_LAYER_MODE_CITY:
                     return DB_Settings.DATABASE_TABLE_CITIES;
@@ -1200,7 +1428,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
         }
 
         /**
-         * Draw a {@link Cube} with default setting @{@link Form#SURFACED}
+         * Draw a {@link Cube} with default setting {@link Form#SURFACED}
          */
         public void drawCube() {
             if (cube != null)
@@ -1414,7 +1642,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
         }
 
         /**
-         * Draws a rotating planet sprite
+         * Draws a rotating planet sprite.
          *
          * @param canvas
          * @param multiplicator From a loop. MIN = 1, MAX = 28. Defines the current printed image sequence of the planet image source
@@ -1453,10 +1681,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
         }
 
         /**
-         * <p>Calls {@link #drawUniverseObjectPositions(UniverseObject, UniverseObject[], int)} and checks if the {@link UniverseObject} object is not null.</p>
+         * <p>Calls {@link #setObjectPositionsOnMap(UniverseObject, UniverseObject[], int)} and checks if the {@link UniverseObject} object is not null.</p>
          * <p>Also checks the canvas locking status and the scale factor maximum value (atm 5f).</p>
          */
-        public void drawUniverseMap() {
+        public void prepareObjectsForDrawing() {
 
             int mode = getStarMapMode();
             if (!isLocked) {
@@ -1467,17 +1695,17 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
             switch (mode) {
                 case STAR_MAP_LAYER_MODE_UNIVERSE: {
                     galaxies = builder.getGalaxies();
-                    objects = new UniverseObject[1][galaxies.length];
-                    objects[0] = galaxies;
+                    multipleObjects = new UniverseObject[1][galaxies.length];
+                    multipleObjects[0] = galaxies;
                     break;
                 }
                 case STAR_MAP_LAYER_MODE_GALAXY: {
                     if (selectedObject != null) {
                         SolarSystem[] systems = selectedObject.getSolarsystems();
                         //create on array filled with solar systems
-                        objects = new UniverseObject[1][systems.length];
-                        objects[0] = systems;
-                    }else{
+                        multipleObjects = new UniverseObject[1][systems.length];
+                        multipleObjects[0] = systems;
+                    } else {
                         System.err.println("SelectedObject is null");
                     }
                     break;
@@ -1486,15 +1714,14 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
                     if (selectedObject != null) {
                         if (selectedObject.isSolarSystem() || selectedObject instanceof SolarSystem) {
                             //create two dimensional array, first index with star(s), second with planets
-                            objects = builder.getSolarSystemChildren((SolarSystem) selectedObject);
+                            multipleObjects = builder.getSolarSystemChildren((SolarSystem) selectedObject);
                             break;
                         } else {
                             System.err.println("When opening a solar system, a " + selectedObject + " was given as input");
                         }
                     }
                 }
-                default:
-                {
+                default: {
                     System.err.println("Failed to initialize UniverseObjects");
                     break;
                 }
@@ -1502,20 +1729,20 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
 
             switch (mode) {
                 case STAR_MAP_LAYER_MODE_UNIVERSE:
-                    drawUniverseObjectPositions(null,objects[0], mode);
+                    setObjectPositionsOnMap(null, multipleObjects[0], mode);
                     break;
                 case STAR_MAP_LAYER_MODE_GALAXY: {
-                        if(selectedObject != null)
-                            drawUniverseObjectPositions(selectedObject,objects[0], mode);
+                    if (selectedObject != null)
+                        setObjectPositionsOnMap(selectedObject, multipleObjects[0], mode);
                     else
                         System.out.println("Wrong instance");
 
                     break;
                 }
                 case STAR_MAP_LAYER_MODE_SOLARSYSTEM: {
-                    for (int i = 0; i < objects.length; i++) {
-                        for (int k = 0; k < objects[i].length; k++) {
-                            drawUniverseObjectPositions(objects[i][k],objects[i], mode);
+                    for (int i = 0; i < multipleObjects.length; i++) {
+                        for (int k = 0; k < multipleObjects[i].length; k++) {
+                            setObjectPositionsOnMap(multipleObjects[i][k], multipleObjects[i], mode);
                         }
                     }
                     break;
@@ -1530,7 +1757,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
          * Checks when more than 6 galaxies have a higher z value than the current one it returns false. Otherwise
          * it means that the current galaxy is one of the 7 nearest galaxies to the camera.
          *
-         * @param o      The current galaxy
+         * @param o       The current galaxy
          * @param objects The galaxies to compare with the current one
          * @return
          */
@@ -1544,7 +1771,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
                     counter++;
                 }
             }
-            if (counter > numberOfObjectsToPrintData) return false;
+            if (counter > Settings.numberOfObjectsToPrintData) return false;
             else return true;
         }
 
@@ -1606,13 +1833,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
 
         /**
          * This is the actual drawing method for drawing all galaxies to the map(SurfaceView)
-
-         * @param current
-         *  This is the current object when handling solar systems. For Universe and Galaxy mode it can be null
+         *
+         * @param current This is the current object when handling solar systems. For Universe and Galaxy mode it can be null
          * @param objects
          * @return
          */
-        private void drawUniverseObjectPositions(UniverseObject current, UniverseObject[] objects, int mapmode) {
+        private void setObjectPositionsOnMap(UniverseObject current, UniverseObject[] objects, int mapmode) {
             if (!isLocked) {
                 myCanvas = holder.lockCanvas();
                 isLocked = true;
@@ -1636,6 +1862,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
                         if (radius > 15)
                             radius = 15;
 
+
                         galaxy = (Galaxy) translateOnScreenOrigin(galaxy, false);
                         galaxy.onRotate(distance, mode, direction, axis);
                         galaxy = (Galaxy) translateOnScreenOrigin(galaxy, true);
@@ -1658,20 +1885,44 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
                         drawConnectionLineToClosestObject(galaxy, galaxies, x, y);
 
                         //volume devider of current galaxy
-                        float dim = galaxy.getVolume()/3;
-                        Cube room = new Cube(dim,dim,dim, Color.BLUE,new Vector(galaxy.getX(),galaxy.getY(),galaxy.getZ()));
-                        room.draw(myCanvas,Cube.WIREFRAME);
-                        myCanvas.drawPoint(galaxy.getX(), galaxy.getY(), setPaintByMapMode(mapmode));
+//                        float dim = galaxy.getVolume()/3;
+//                        Cube room = new Cube(dim,dim,dim, Color.BLUE,new Vector(galaxy.getX(),galaxy.getY(),galaxy.getZ()));
+//                        room.draw(myCanvas,Cube.WIREFRAME);
+                        myCanvas.drawPoint(x, y, setPaintByMapMode(mapmode));
+
+                        float depth = 0f;
+                        if (z < 0)
+                            depth = z * -1f;
+                        else
+                            depth = z;
+
+                        Paint pG = new Paint();
+                        pG.setColor(Color.BLUE);
+
+                        float vol, dim;
+                        vol = (galaxy.getVolume() / 3f);
+                        dim = vol + z / 10;
+
+                        Cube cube = new Cube(dim, dim / 3f, depth, Color.BLUE, new Vector(x - vol / 2, y + vol / 2, z - vol / 4));
+                        cube.draw(myCanvas, Cube.WIREFRAME);
                     }
                     break;
                 }
                 case STAR_MAP_LAYER_MODE_GALAXY: {
                     SolarSystem[] solarSystems = current.getSolarsystems();
+                    /*
+                    Multiply the positions of the contained solar systems
+                    with the relative size of galaxy and the screen
+                     */
+                    float vol = current.getVolume();
+                    float multiplier = vol / 3f;
+                    multiplier /= ((centerX * 2) * (centerY * 2)) / 2f;
+
                     //print its solarsystems
                     for (SolarSystem solarSystem : solarSystems) {
-                        float z = solarSystem.getZ();
-                        float y = solarSystem.getY();
-                        float x = solarSystem.getX();
+                        float z = solarSystem.getZ() * multiplier;
+                        float y = solarSystem.getY() * multiplier;
+                        float x = solarSystem.getX() * multiplier;
                         float radius = solarSystem.getRadius();
 
                         if (radius / z > 0)
@@ -1704,55 +1955,64 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
                         drawConnectionLineToClosestObject(solarSystem, solarSystems, x, y);
 
                         //TODO only once if the canvas has w & h same dimensions
-                        float galaxyScaleFactor = (centerX/(current.getVolume()/3))*3;
+                        float galaxyScaleFactor = (centerX / (current.getVolume() / 3)) * 3;
                         //test line to detect the solar systems
 //                        myCanvas.drawLine(centerX,centerY,solarSystem.getX(), solarSystem.getY(), setPaintByMapMode(mapmode));
                         myCanvas.drawPoint(
-                                solarSystem.getX()*galaxyScaleFactor,
-                                solarSystem.getY()*galaxyScaleFactor,
+                                solarSystem.getX() * galaxyScaleFactor,
+                                solarSystem.getY() * galaxyScaleFactor,
                                 setPaintByMapMode(mapmode));
                     }
                     break;
                 }
                 case STAR_MAP_LAYER_MODE_SOLARSYSTEM: {
-                   //TODO initialize solar system drawing
+                    //TODO initialize solar system drawing
                     break;
                 }
             }
         }
 
-        private Paint setPaintByMapMode(int mode){
-            switch (mode){
-                case STAR_MAP_LAYER_MODE_GALAXY:{
+        /**
+         * Returns the kind of color and style as Paint Object depending on
+         * which type of starmap mode is currently on
+         *
+         * @param mode
+         * @return
+         */
+        private Paint setPaintByMapMode(int mode) {
+            switch (mode) {
+                case STAR_MAP_LAYER_MODE_GALAXY: {
                     p.setAntiAlias(true);
                     p.setColor(Color.YELLOW);
                     p.setStyle(Paint.Style.STROKE);
                     return p;
                 }
-                case STAR_MAP_LAYER_MODE_UNIVERSE:{
+                case STAR_MAP_LAYER_MODE_UNIVERSE: {
                     p.setAntiAlias(true);
                     p.setColor(Color.RED);
                     p.setStyle(Paint.Style.STROKE);
                     return p;
                 }
-                case STAR_MAP_LAYER_MODE_SOLARSYSTEM:{
+                case STAR_MAP_LAYER_MODE_SOLARSYSTEM: {
 
                     return p;
                 }
-                default:{
+                default: {
                     return p;
                 }
 
             }
         }
+
         /**
          * Draws a connection line between itself and the closest (same class) object
+         *
          * @param o
          * @param objects
          * @param x
          * @param y
          */
-        private void drawConnectionLineToClosestObject(UniverseObject o,UniverseObject[] objects,float x, float y){
+        private void drawConnectionLineToClosestObject(UniverseObject o, UniverseObject[] objects, float x, float y) {
             p.setAlpha(33);
 
             //draw line to the closest object
@@ -1765,7 +2025,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
         }
 
         /**
-         * The sev
+         * If the current object is one of the closest to the camera the {@link com.thesaan.gameengine.android.ui.StarMapSurface#numberOfObjectsToPrintData}  variable
+         * defines how many), a small description of this object gets shown in the format
+         * <p>e.g. for a solar system</p>
+         * <p>SS.JDKJEI.198784</p>
+         * <p>X: 123 Y: -45 Z: 13</p>
+         *
          * @param o
          * @param objects
          * @param x
@@ -1773,48 +2038,48 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
          * @param z
          * @param p
          */
-        private void drawClosestObjectsToCamera(UniverseObject o, UniverseObject[] objects,float x, float y, float z, Paint p) {
-        //print information about the galaxy if its one of the 7 nearest to the camera
-        if (isOneOfTheClosest(o, objects)) {
-            int dx = 1;
-            int dy = 1;
-            if (x < centerX) dx = -1;
-            if (y > centerY) dy = -1;
+        private void drawClosestObjectsToCamera(UniverseObject o, UniverseObject[] objects, float x, float y, float z, Paint p) {
+            //print information about the galaxy if its one of the 7 nearest to the camera
+            if (isOneOfTheClosest(o, objects)) {
+                int dx = 1;
+                int dy = 1;
+                if (x < centerX) dx = -1;
+                if (y > centerY) dy = -1;
 
-            p.setColor(Color.WHITE);
+                p.setColor(Color.WHITE);
 
 
-            if (x < centerX) {
-                if (y < centerY) {
-                    //top left
-                    myCanvas.drawText("X:" + (int) x + " Y:" + (int) y + " Z:" + (int) z, (x + (150 * dx)), y, p);
-                    myCanvas.drawText(o.getName(), x + (150 * dx), y + 20, p);
-                    myCanvas.drawLine(x + 15 * dx, y + 15 * dy, x + 40 * dx, y + 15 * dy, p);//horizontal
-                    myCanvas.drawLine(x + 5 * dx, y + 5 * dy, x + 15 * dx, y + 15 * dy, p);//diagonal
+                if (x < centerX) {
+                    if (y < centerY) {
+                        //top left
+                        myCanvas.drawText("X:" + (int) x + " Y:" + (int) y + " Z:" + (int) z, (x + (150 * dx)), y, p);
+                        myCanvas.drawText(o.getName(), x + (150 * dx), y + 20, p);
+                        myCanvas.drawLine(x + 15 * dx, y + 15 * dy, x + 40 * dx, y + 15 * dy, p);//horizontal
+                        myCanvas.drawLine(x + 5 * dx, y + 5 * dy, x + 15 * dx, y + 15 * dy, p);//diagonal
+                    } else {
+                        //bottom left
+                        myCanvas.drawText("X:" + (int) x + " Y:" + (int) y + " Z:" + (int) z, (x + (150 * dx)), y, p);
+                        myCanvas.drawText(o.getName(), x + (150 * dx), y - 20, p);
+                        myCanvas.drawLine(x + 15 * dx, y + 15 * dy, x + 40 * dx, y + 15 * dy, p);//horizontal
+                        myCanvas.drawLine(x + 5 * dx, y + 5 * dy, x + 15 * dx, y + 15 * dy, p);//diagonal
+                    }
                 } else {
-                    //bottom left
-                    myCanvas.drawText("X:" + (int) x + " Y:" + (int) y + " Z:" + (int) z, (x + (150 * dx)), y, p);
-                    myCanvas.drawText(o.getName(), x + (150 * dx), y - 20, p);
-                    myCanvas.drawLine(x + 15 * dx, y + 15 * dy, x + 40 * dx, y + 15 * dy, p);//horizontal
-                    myCanvas.drawLine(x + 5 * dx, y + 5 * dy, x + 15 * dx, y + 15 * dy, p);//diagonal
-                }
-            } else {
-                if (y < centerY) {
-                    //top right
-                    myCanvas.drawText("Z:" + (int) z + " Y:" + (int) y + " X:" + (int) x, (x + (45 * dx)), y, p);
-                    myCanvas.drawText(o.getName(), x + (45 * dx), y + 20, p);
-                    myCanvas.drawLine(x + 15 * dx, y + 15 * dy, x + 40 * dx, y + 15 * dy, p);//horizontal
-                    myCanvas.drawLine(x + 5 * dx, y + 5, x + 15 * dx, y + 15 * dy, p);//diagonal
-                } else {
-                    //bottom right
-                    myCanvas.drawText("Z:" + (int) z + " Y:" + (int) y + " X:" + (int) x, (x + 45), y, p);
-                    myCanvas.drawText(o.getName(), x + (45 * dx), y - 20, p);
-                    myCanvas.drawLine(x + 15 * dx, y + 15 * dy, x + 40 * dx, y + 15 * dy, p);//horizontal
-                    myCanvas.drawLine(x + 5 * dx, y + 5 * dy, x + 15 * dx, y + 15 * dy, p);//diagonal
+                    if (y < centerY) {
+                        //top right
+                        myCanvas.drawText("Z:" + (int) z + " Y:" + (int) y + " X:" + (int) x, (x + (45 * dx)), y, p);
+                        myCanvas.drawText(o.getName(), x + (45 * dx), y + 20, p);
+                        myCanvas.drawLine(x + 15 * dx, y + 15 * dy, x + 40 * dx, y + 15 * dy, p);//horizontal
+                        myCanvas.drawLine(x + 5 * dx, y + 5, x + 15 * dx, y + 15 * dy, p);//diagonal
+                    } else {
+                        //bottom right
+                        myCanvas.drawText("Z:" + (int) z + " Y:" + (int) y + " X:" + (int) x, (x + 45), y, p);
+                        myCanvas.drawText(o.getName(), x + (45 * dx), y - 20, p);
+                        myCanvas.drawLine(x + 15 * dx, y + 15 * dy, x + 40 * dx, y + 15 * dy, p);//horizontal
+                        myCanvas.drawLine(x + 5 * dx, y + 5 * dy, x + 15 * dx, y + 15 * dy, p);//diagonal
+                    }
                 }
             }
         }
-    }
 
         /**
          * Translates the object origin to the screen origin to calculate the position correctly.
@@ -1836,7 +2101,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
         }
 
         /**
-         * The object searches for the closest object to draw a line to this object in {@link #drawUniverseMap()}
+         * The object searches for the closest object to draw a line to this object in {@link #prepareObjectsForDrawing()}
          *
          * @param o
          * @param objects
@@ -1892,6 +2157,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
             return nearest;
         }
 
+        /**
+         * Returns the closest object to the camera. Means the object with the biggest z-value.
+         *
+         * @param objects
+         * @param selectedIndex
+         * @return
+         */
         private UniverseObject getClosestObjectToCamera(UniverseObject[] objects, int selectedIndex) {
 
             UniverseObject highest = null;
@@ -1947,70 +2219,84 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback, 
         }
 
         /**
-         * Only recall {@link #drawUniverseMap()} but now the {@link #mScaleFactor} is updated
+         * Only recall {@link #prepareObjectsForDrawing()} but now the {@link #mScaleFactor} is updated
          */
         public void scale() {
-            drawUniverseMap();
-    //            drawLineal(mScaleFactor);
+            prepareObjectsForDrawing();
+            //            drawLineal(mScaleFactor);
 
         }
 
-}
+    }
 
-/**
- * Initializing loader for all required Bitmaps. Gets started on constructor
- */
-public class BitmapLoader extends Thread implements Runnable {
+    /**
+     * Initializing loader for all required Bitmaps. Gets started on constructor
+     */
+    public class BitmapLoader extends Thread implements Runnable {
 
-    private final int planetImageWidth = 3840;
-    private final int planetImageHeight = 128;
-    private final int planetSceneAmount = 28;
+        private final int planetImageWidth = 3840;
+        private final int planetImageHeight = 128;
+        private final int planetSceneAmount = 28;
 
-    private final String IMAGE_FOLDER = Environment.getExternalStorageDirectory().getPath() + "/beyonduniverse/img/";
+        private final String IMAGE_FOLDER = Environment.getExternalStorageDirectory().getPath() + "/beyonduniverse/img/";
 
-    public BitmapLoader() {
+        public BitmapLoader() {
+
+        }
+
+        @Override
+        public void run() {
+
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inScaled = false;
+            options.inMutable = true;
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
+            loadPlanetBitmaps(options);
+        }
+
+        private void loadPlanetBitmaps(BitmapFactory.Options options) {
+            TypedArray planets = getResources().obtainTypedArray(R.array.planet_bitmaps);
+
+            planetBitmaps = new Bitmap[planets.getIndexCount()];
+            for (int i = 0; i < planetBitmaps.length; i++) {
+                Bitmap bm = BitmapFactory.decodeResource(getResources(), planets.getResourceId(i, -1), options);
+                planetBitmaps[i] = bm;
+            }
+        }
 
     }
 
-    @Override
-    public void run() {
+    /*----------------------------------------LISTENERS-----------------------------------*/
+    public class ScaleListener
+            extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inScaled = false;
-        options.inMutable = true;
-        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            mScaleFactor *= detector.getScaleFactor();
+            System.out.println("Scalefactor: " + mScaleFactor);
 
-        loadPlanetBitmaps(options);
-    }
+            // Don't let the object get too small or too large.         Sys
+            mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
 
-    private void loadPlanetBitmaps(BitmapFactory.Options options) {
-        TypedArray planets = getResources().obtainTypedArray(R.array.planet_bitmaps);
+            Canvas c = holder.lockCanvas();
 
-        planetBitmaps = new Bitmap[planets.getIndexCount()];
-        for (int i = 0; i < planetBitmaps.length; i++) {
-            Bitmap bm = BitmapFactory.decodeResource(getResources(), planets.getResourceId(i, -1), options);
-            planetBitmaps[i] = bm;
+            c.save();
+
+            c.scale(mScaleFactor, mScaleFactor, touchedX, touchedY);
+
+
+//            UniverseObject[] objects;
+
+//            if (getStarMapMode() == STAR_MAP_LAYER_MODE_UNIVERSE) {
+//                objects = builder.getGalaxies();
+//            } else {
+//                objects = getCurrentparent().getChildren();
+//            }
+            invalidate();
+            return true;
         }
     }
-
-}
-
-/*----------------------------------------LISTENERS-----------------------------------*/
-public class ScaleListener
-        extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-
-    @Override
-    public boolean onScale(ScaleGestureDetector detector) {
-        mScaleFactor *= detector.getScaleFactor();
-        System.out.println("Scalefactor: " + mScaleFactor);
-//            surfaceHandler.post(new ScaleMapRun(builder.getGalaxies(),mScaleFactor));
-        // Don't let the object get too small or too large.         Sys
-        mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
-
-        invalidate();
-        return true;
-    }
-}
 
 
 }

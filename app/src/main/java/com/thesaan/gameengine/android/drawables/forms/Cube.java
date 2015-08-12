@@ -5,7 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 
 import com.thesaan.gameengine.android.handler.MathHandler;
-import com.thesaan.gameengine.android.ui.GameSurface;
+import com.thesaan.gameengine.android.ui.StarMapSurface;
 
 /**
  * Created by mknoe on 28.04.2015.
@@ -206,13 +206,13 @@ public class Cube implements Form{
         int directionSelector;
 
         switch (direction){
-            case GameSurface.DIRECTION_LEFT:
-            case GameSurface.DIRECTION_UP:{
+            case StarMapSurface.DIRECTION_LEFT:
+            case StarMapSurface.DIRECTION_UP:{
                 directionSelector = -1;
                 break;
             }
-            case GameSurface.DIRECTION_RIGHT:
-            case GameSurface.DIRECTION_DOWN:{
+            case StarMapSurface.DIRECTION_RIGHT:
+            case StarMapSurface.DIRECTION_DOWN:{
                 directionSelector = 1;
                 break;
             }

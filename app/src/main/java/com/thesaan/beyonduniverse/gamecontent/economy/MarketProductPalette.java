@@ -7,7 +7,7 @@ import com.thesaan.beyonduniverse.MainActivity;
 import com.thesaan.beyonduniverse.gamecontent.Race;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
 import com.thesaan.gameengine.android.DB_Settings;
-import com.thesaan.gameengine.android.database.UniverseDatabase;
+import com.thesaan.gameengine.android.database.AppDatabase;
 import com.thesaan.gameengine.android.handler.RandomHandler;
 
 import java.util.Random;
@@ -20,7 +20,7 @@ public class MarketProductPalette implements UniverseObjectProperties{
     private Race myRace;
     private int planetType;
 
-    private UniverseDatabase db;
+    private AppDatabase db;
 
 
     public final static int ITEM_PASSENGERS = 198;
@@ -76,7 +76,7 @@ public class MarketProductPalette implements UniverseObjectProperties{
         this.planetType = planetType;
         mySortiment = createSortiment();
     }
-    public MarketProductPalette(Cursor c, UniverseDatabase db){
+    public MarketProductPalette(Cursor c, AppDatabase db){
 
         this.db = db;
         planetType = c.getInt(c.getColumnIndex(DB_Settings.COL_PlANET_TYPE));
@@ -107,7 +107,7 @@ public class MarketProductPalette implements UniverseObjectProperties{
 
         //the array of the selected item drawable ids
         if(db == null)
-            db = new UniverseDatabase(context);
+            db = new AppDatabase(context);
 
         drawIds = db.getDrawableId(myRace,productType);
 

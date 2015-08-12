@@ -4,9 +4,14 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Movie;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 
 import java.io.File;
@@ -14,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -24,6 +30,8 @@ import java.nio.channels.FileChannel;
 public class BitmapHandler {
     Context context;
     ContentResolver mContentResolver;
+
+    public static final String FORMAT_GIF = ".gif";
 
     public BitmapHandler(Context context){
 
@@ -175,5 +183,58 @@ public class BitmapHandler {
         }
     }
 
+    /**
+     * Plays a GIF animation inside a custom view
+     *
+     * maybe some settings could be inserted as arguments like
+     * gif size...
+     *
+     * @param filename
+     *  File has to be contained in assets folder
+     */
+    public View playGif(String filename){
 
+        InputStream stream = null;
+        try {
+            stream = context.getAssets().open(filename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        GIFView view = new GIFView(stream);
+
+        return view;
+    }
+
+    public class GIFView extends View {
+
+        InputStream mStream;
+
+        Movie mMovie;
+
+        private long movieStart;
+
+        public GIFView(InputStream stream){
+            super(context);
+
+            mStream = stream;
+
+            mMovie = Movie.decodeStream(mStream);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas){
+            canvas.drawColor(Color.TRANSPARENT);
+            super.onDraw(canvas);
+
+            final long now = SystemClock.uptimeMillis();
+
+            if(movieStart == 0){
+                movieStart = now;
+            }
+            final int relTime = (int)((now - movieStart) % mMovie.duration());
+            mMovie.setTime(relTime);
+            mMovie.draw(canvas, 10, 10);
+            this.invalidate();
+        }
+    }
 }

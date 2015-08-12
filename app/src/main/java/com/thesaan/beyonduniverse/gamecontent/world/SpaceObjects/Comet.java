@@ -8,7 +8,11 @@ import com.thesaan.gameengine.android.handler.MathHandler;
 public class Comet extends UniverseObject {
 
 
-    public Comet(String name, MathHandler.Vector position, float mass, float radius, float degrees, int type){
-        super(name,position,mass,radius,degrees,type);
+    public Comet(String name, MathHandler.Vector position, float mass, float degrees, int type){
+        super(name,position,mass,degrees,type);
+
+        this.type = type;
+
+        setRandomRadius();
     }
 }

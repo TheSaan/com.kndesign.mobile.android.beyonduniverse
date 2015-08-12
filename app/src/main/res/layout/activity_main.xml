@@ -9,13 +9,14 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity">
 
-    <com.thesaan.gameengine.android.ui.GameSurface
+    <com.thesaan.gameengine.android.ui.StarMapSurface
         android:id="@+id/gameSurface"
-        android:layout_width="500dp"
-        android:layout_height="500dp"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_centerVertical="true" />
+        android:layout_centerVertical="true"
+        android:visibility="visible" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -23,7 +24,7 @@
         android:layout_height="500dp"
         android:layout_toRightOf="@id/gameSurface"
         android:orientation="vertical"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
@@ -68,6 +69,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Scale Down"
+                android:textAlignment="center" />
+            <Button
+                android:id="@+id/backToUniverse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:textAlignment="center" />
         </LinearLayout>
 

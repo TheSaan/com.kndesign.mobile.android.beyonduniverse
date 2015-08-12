@@ -411,7 +411,13 @@ public class MathHandler
         private Matrix _ScaleMatrix;
 
         public final static int X_AXIS = 0;
+        /**
+         * Simulates real
+         */
         public final static int Y_AXIS = 1;
+        /**
+         * Simulates real Z-Axis (Space Depth)
+         */
         public final static int Z_AXIS = 2;
 
         /*----------------------------------------HANDLERS-----------------------------------*/
@@ -464,11 +470,11 @@ public class MathHandler
                     matrix = getXRotationMatrix(angle, isPhysical);
                     whichAxis = "x-axis";
                     break;
-                case Y_AXIS:
+                case Z_AXIS:
                     matrix = getYRotationMatrix(angle,isPhysical);
                     whichAxis = "y-axis";
                     break;
-                case Z_AXIS:
+                case Y_AXIS:
                     matrix = getZRotationMatrix(angle,isPhysical);
                     whichAxis = "z-axis";
                     break;

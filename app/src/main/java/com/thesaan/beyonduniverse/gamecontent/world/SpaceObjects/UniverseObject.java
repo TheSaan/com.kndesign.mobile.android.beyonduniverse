@@ -10,11 +10,11 @@ import com.thesaan.beyonduniverse.gamecontent.Drawables;
 import com.thesaan.beyonduniverse.gamecontent.economy.Market;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
 import com.thesaan.gameengine.android.DB_Settings;
-import com.thesaan.gameengine.android.database.UniverseDatabase;
+import com.thesaan.gameengine.android.database.AppDatabase;
 import com.thesaan.gameengine.android.drawables.CoordinateSystem3D;
 import com.thesaan.gameengine.android.handler.MathHandler;
 import com.thesaan.gameengine.android.handler.RandomHandler;
-import com.thesaan.gameengine.android.ui.GameSurface;
+import com.thesaan.gameengine.android.ui.StarMapSurface;
 
 import java.util.Random;
 
@@ -31,7 +31,6 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
      * To choose the correct star bitmap
      */
     Paint starPaint;
-    public MathHandler.Vector myPosition;
 
     ImageView mImageView;
 
@@ -55,9 +54,11 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
     public String name;
     public int type;
     public int planetType;
-    public String parent;
+    public MathHandler.Vector myPosition;
+    public UniverseObject parent;
+    public String typeName;
 
-    UniverseDatabase uDb;
+    AppDatabase uDb;
 
 
     /*----------------------------------------CONSTRUCTORS-----------------------------------*/
@@ -77,7 +78,7 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
         if(name != "")
             this.name = name;
         else
-            setRandomName(type);
+            setRandomName();
         this.population = population;
         this.markets = markets;
 
@@ -85,18 +86,17 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
 
 
     /**
-     * To create asteroids, comets.
+     * To create Stars, asteroids, comets.
      * @param name
      *  If the name is empty, an unique random name will be set to this object.
      *  Please note, that only objects should have explicit names which are inside the story.
      * @param position
      *  The universal position of the object.
      * @param mass
-     * @param radius
      * @param degrees
      * @param type
      */
-    public UniverseObject(String name, MathHandler.Vector position, float mass, float radius,float degrees, int type){
+    public UniverseObject(String name, MathHandler.Vector position, float mass, float degrees, int type){
         //set the stars color
         starPaint = new Paint();
 
@@ -109,13 +109,13 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
         if(name != "")
             this.name = name;
         else
-            setRandomName(type);
+            setRandomName();
 
         myPosition = position;
 
         this.degrees = degrees;
         this.mass = mass;
-        this.radius = radius;
+        this.radius = setRandomRadius();
         scope = 2f*radius*(float) Math.PI;
 
     }
@@ -123,49 +123,47 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
     /**
      * This one is only for creating solar systems.
      * @param name
-     * @param position
      * @param radius
      * @param type
      */
-    public UniverseObject(String name, MathHandler.Vector position, float radius, int type){
+    public UniverseObject(String name,UniverseObject parent, float radius, int type){
 
-
+        this.parent = parent;
         //name set
         if(name != "")
             this.name = name;
         else
-            setRandomName(type);
-        if(type == OBJECT_SOLARSYSTEM)
-            this.type = type;
-        else
-            System.err.println("Tried to create "+getTypeName(type)+" with Solarsystem constructor!");
+            setRandomName();
 
-        myPosition = position;
+        this.type = type;
+
+
+        myPosition = setRandomPosition();
 
         this.radius = radius;
 
-    }/**
-     * This one is only for creating galaxies.
+    }
+    /**
+     * This one is only for creating galaxies. The position gets calculated internally
      * @param name
-     * @param position
      * @param type
      */
-    public UniverseObject(String name, MathHandler.Vector position, int type){
+    public UniverseObject(String name, int type){
 
         //type set
         if(type == OBJECT_GALAXY)
             this.type = type;
         else
-            System.err.println("Tried to create "+getTypeName(type)+" with Galaxy constructor!");
+            System.err.println("Tried to create "+getTypeName()+" with Galaxy constructor!");
 
         //name set
         if(name != "")
             this.name = name;
         else
-            setRandomName(type);
+            setRandomName();
 
         //position set
-        myPosition = position;
+        myPosition = setRandomPosition();
 
     }
 
@@ -175,6 +173,9 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
         this.type = type;
     }
 
+    public void setMyPosition(MathHandler.Vector position){
+        this.myPosition = position;
+    }
     /**
      * If the object is a star, choose its color for selecting the corrent bitmap then.
      */
@@ -220,7 +221,7 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
     /**
      * Sets a random mass value for either galaxies or solarsystems.
      * This value is actual to get the side lengths of the object for
-     * relating the new positions of its children when open it {@link GameSurface.GameThread#openObject()}
+     * relating the new positions of its children when open it {@link StarMapSurface.GameThread#openObject()}
      * @param type
      * @return
      */
@@ -308,26 +309,35 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
 
     /**
      * Sets a random postion for a galaxy or solar system.
-     * If the object is a solar system, the position is related to the parent galaxys
-     * position
-     * @param type
+     * If the object is a solar system, the position is related to the parent galaxies
+     * position, so that it is guaranteed that the solar system is really within
+     * the galaxy.
      * @return
      */
-    public static MathHandler.Vector setRandomPosition(int type){
+    public MathHandler.Vector setRandomPosition(){
         Random r = new Random();
+        float devider = 3333f;
         float x,y,z;
-        float borderMinDistance = ((UNIVERSE_X /3333f)/2);
+        float borderMinDistance = ((UNIVERSE_X /devider)/2);
         switch (type){
             case OBJECT_GALAXY:{
-                x = (GALAXY_MAX_X +(UNIVERSE_X /RandomHandler.createFloatFromRange(borderMinDistance,3333,r)));
-                y = (GALAXY_MAX_Y +(UNIVERSE_Y /RandomHandler.createFloatFromRange(borderMinDistance,3333,r)));
-                z = (GALAXY_MAX_Z +(UNIVERSE_Z /RandomHandler.createFloatFromRange(borderMinDistance,3333,r)));
+                x = (GALAXY_MAX_X +(UNIVERSE_X /RandomHandler.createFloatFromRange(borderMinDistance,devider,r)));
+                y = (GALAXY_MAX_Y +(UNIVERSE_Y /RandomHandler.createFloatFromRange(borderMinDistance,devider,r)));
+                z = (GALAXY_MAX_Z +(UNIVERSE_Z /RandomHandler.createFloatFromRange(borderMinDistance,devider,r)));
                 break;
             }
             case OBJECT_SOLARSYSTEM:{
-                x = (SOLARSYSTEM_MAX_X +(GALAXY_MAX_X /RandomHandler.createFloatFromRange(1,100,r)));
-                y = (SOLARSYSTEM_MAX_Y +(GALAXY_MAX_Y /RandomHandler.createFloatFromRange(1,100,r)));
-                z = (SOLARSYSTEM_MAX_Z +(GALAXY_MAX_Z /RandomHandler.createFloatFromRange(1,100,r)));
+                //parent dimensions
+                float pWidth = getGalaxyWidth();
+                float pHeight = getGalaxyHeight();
+                //parent position
+                float pPivotX = parent.getX();
+                float pPivotY = parent.getY();
+                float pPivotZ = parent.getZ();
+
+                x = (SOLARSYSTEM_MAX_X +(GALAXY_MAX_X /RandomHandler.createFloatFromRange(pPivotX-(pWidth/2),pPivotX+(pWidth/2),r)));
+                y = (SOLARSYSTEM_MAX_Y +(GALAXY_MAX_Y /RandomHandler.createFloatFromRange(pPivotY-(pHeight/2),pPivotY+(pHeight/2),r)));
+                z = (SOLARSYSTEM_MAX_Z +(GALAXY_MAX_Z /RandomHandler.createFloatFromRange(pPivotZ-((pWidth/2)/2),pPivotZ+((pWidth/2)/2),r)));
                 break;
             }
             default:
@@ -398,11 +408,10 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
      * <p>For Moon: {@link #EARTH_RADIUS} x (0.00001f up to 0.4f)</p>
      * <p>For Asteroids & Comets: {@link #EARTH_RADIUS} x (0.0000001f up to 0.01f)</p>
      * <p>For Planet: {@link #EARTH_RADIUS} x (0.001f up to 20.0f)</p>
-     * @param type
      * @return
      *  <p>default - {@link #EARTH_RADIUS}</p>
      */
-    public static float setRandomRadius(int type){
+    public float setRandomRadius(){
         Random r = new Random();
         switch (type){
             case OBJECT_PLANET:{
@@ -425,9 +434,8 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
     /**
      * Create a random name
      * like if its a planet: P.UZDMDK.574865
-     * @param type
      */
-    public void setRandomName(int type){
+    public void setRandomName(){
         String prefix = "";
         String postfix ="";
         String randName ="";
@@ -435,7 +443,7 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
 
         //create middle
         for(int i = 0; i<6;i++){
-            randName += alphabet[RandomHandler.createIntegerFromRange(0,alphabet.length-1, r)];
+            randName += ALPHABET[RandomHandler.createIntegerFromRange(0, ALPHABET.length-1, r)];
         }
         for(int i = 0; i<6;i++){
             postfix += RandomHandler.createIntegerFromRange(0,9, r);
@@ -500,7 +508,7 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
             default: return 0;
         }
     }
-    private String getTypeName(int type){
+    public String getTypeName(){
         switch(type){
             case OBJECT_WORLD: return "World";
             case OBJECT_GALAXY: return "Galaxy";
@@ -551,7 +559,7 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
     }
 
     @Override
-    public void onScale(float factor){
+    public void onZoom(float factor){
         myPosition = MathHandler.getTranslationMatrix().scaleVector(myPosition,factor);
     }
 
@@ -583,6 +591,24 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
     @Override
     public float getRadius() {
         return radius;
+    }
+
+    /**
+     * Calculates the dimensions as a galaxy disk format. And not as
+     * a cube.
+     * @return
+     */
+    public float getGalaxyWidth(){
+        return ((parent.getVolume()*0.33f)/2f);
+    }
+
+    /**
+     * Calculates the dimensions as a galaxy disk format. And not as
+     * a cube.
+     * @return
+     */
+    public float getGalaxyHeight(){
+        return parent.getVolume()*0.33f;
     }
 
     @Override
@@ -640,6 +666,8 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
         return cities;
     }
 
+
+
     @Override
     public void setX(float x) {
         myPosition.setX(x);
@@ -655,7 +683,9 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
         myPosition.setZ(z);
     }
 
-
+    public void setRadius(float radius){
+        this.radius = radius;
+    }
 
 
 

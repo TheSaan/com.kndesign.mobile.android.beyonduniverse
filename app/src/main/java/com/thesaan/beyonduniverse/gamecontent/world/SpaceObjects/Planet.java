@@ -8,11 +8,14 @@ import com.thesaan.gameengine.android.handler.MathHandler;
  */
 public class Planet extends UniverseObject {
 
-    public Planet(String name, MathHandler.Vector position, float mass, float radius,Moon[] moons,City[] cities, float degrees, int type, int planetType){
-        super(name,position,mass,radius,degrees,type);
+    public Planet(String name, MathHandler.Vector position, float mass, Moon[] moons,City[] cities, float degrees, int type, int planetType){
+        super(name,position,mass,degrees,type);
 
 
         this.planetType = planetType;
+        this.type = type;
+
+        setRandomRadius();
         if(cities != null) {
             this.cities = cities;
 

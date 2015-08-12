@@ -12,11 +12,9 @@ import android.widget.Toast;
 import com.thesaan.beyonduniverse.gamecontent.UniverseMap;
 import com.thesaan.beyonduniverse.gamecontent.world.Universe;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
-import com.thesaan.gameengine.android.ui.GameSurface;
+import com.thesaan.gameengine.android.ui.StarMapSurface;
 
-import com.thesaan.beyonduniverse.R;
-
-import com.thesaan.gameengine.android.database.UniverseDatabase;
+import com.thesaan.gameengine.android.database.AppDatabase;
 
 import java.io.File;
 
@@ -25,17 +23,18 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
 
     Button loadButton, starMapButton, scaleUpButton, scaleDownButton;
+    Button backToUniverseLayerButton;
 
     SeekBar waitBar;
 
-    public GameSurface gameSurface;
+    public StarMapSurface gameSurface;
 
     TextView tv, waitInfo,dbInfoText, selectedObjectInfo, starMapModeInfo;
 
 
     public static Context globalContext;
 
-    public static UniverseDatabase uDb;
+    public static AppDatabase uDb;
 
     public static File internalDir;
 
@@ -53,7 +52,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
         internalDir = getFilesDir();
 
-        uDb = new UniverseDatabase(MainActivity.this);
+        uDb = new AppDatabase(MainActivity.this);
 
         mUniverse = new Universe(this,uDb);
 
@@ -63,7 +62,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
 
 
-        gameSurface = (GameSurface)findViewById(R.id.gameSurface);
+        gameSurface = (StarMapSurface)findViewById(R.id.gameSurface);
         if(gameSurface == null)
             System.err.println("GameSurface init failed");
 
@@ -96,7 +95,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         }
     }
     public void setSelectedObjectInfo(String name){
-        selectedObjectInfo.setText("Selected object: "+name);
+        selectedObjectInfo.setText("\tSelected object: "+name);
     }
     public void setStarMapModeInfo(String mode){
         starMapModeInfo.setText(mode);
@@ -130,6 +129,8 @@ public class MainActivity extends Activity implements View.OnClickListener{
 //        loadButton = (Button)findViewById(R.id.loadButton);
 //        loadButton.setOnClickListener(this);
 
+        backToUniverseLayerButton = (Button)findViewById(R.id.backToUniverse);
+        backToUniverseLayerButton.setText("Universe Mode");
         selectedObjectInfo = (TextView)findViewById(R.id.selectedObjectInfo);
         selectedObjectInfo.setText("Kein Objekt ausgewählt");
 
@@ -141,12 +142,12 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
         dbInfoText = (TextView)findViewById(R.id.dbInfoText);
         dbInfoText.setText(
-                "Galaxien: "+uDb.getGalaxies().getCount()+"\n"+
-                "Sternensysteme: "+uDb.getSolarSystems().getCount()+"\n"+
-                "Sterne: "+uDb.getStars().getCount()+"\n"+
-                "Planeten: "+uDb.getPlanets().getCount()+"\n"+
-                "Monde: "+uDb.getMoons().getCount()+"\n"+
-                "Städte: "+uDb.getCities().getCount()+"\n"
+                "\tGalaxien: "+uDb.getGalaxies().getCount()+"\n"+
+                "\tSternensysteme: "+uDb.getSolarSystems().getCount()+"\n"+
+                "\tSterne: "+uDb.getStars().getCount()+"\n"+
+                "\tPlaneten: "+uDb.getPlanets().getCount()+"\n"+
+                "\tMonde: "+uDb.getMoons().getCount()+"\n"+
+                "\tStädte: "+uDb.getCities().getCount()+"\n"
 
         );
 
@@ -212,6 +213,9 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
                 Toast.makeText(MainActivity.this, "Open Starmap with " + uDb.getNumberOfGalaxies() + " Galaxies...", Toast.LENGTH_SHORT).show();
                 break;
+            }
+            case R.id.backToUniverse:{
+                gameSurface.goToUniverseMode();
             }
         }
     }

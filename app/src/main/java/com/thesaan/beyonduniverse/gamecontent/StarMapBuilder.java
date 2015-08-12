@@ -10,7 +10,7 @@ import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Star;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.UniverseObject;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
 import com.thesaan.gameengine.android.DB_Settings;
-import com.thesaan.gameengine.android.database.UniverseDatabase;
+import com.thesaan.gameengine.android.database.AppDatabase;
 import com.thesaan.gameengine.android.handler.MathHandler;
 
 /**
@@ -24,9 +24,9 @@ public class StarMapBuilder {
     Planet[] planets;
     Moon[] moons;
 
-    UniverseDatabase db;
+    AppDatabase db;
 
-    public StarMapBuilder(UniverseDatabase db){
+    public StarMapBuilder(AppDatabase db){
         this.db = db;
         createMapOfGalaxies();
     }
@@ -44,21 +44,25 @@ public class StarMapBuilder {
             c = db.getGalaxy(i+1);
             c.moveToFirst();
             MathHandler.Vector pos = new MathHandler.Vector(c.getFloat(c.getColumnIndex(DB_Settings.COL_POS_X)),c.getFloat(c.getColumnIndex(DB_Settings.COL_POS_Y)),c.getFloat(c.getColumnIndex(DB_Settings.COL_POS_Z)));
-            Galaxy galaxy = new Galaxy(c.getString(c.getColumnIndex(DB_Settings.COL_NAME)),c.getFloat(c.getColumnIndex(DB_Settings.COL_VOLUME)),pos, db.getSolarSystemsOfGalaxy(c.getString(c.getColumnIndex(DB_Settings.COL_NAME))), UniverseObjectProperties.OBJECT_GALAXY);
+            Galaxy galaxy = new Galaxy(c.getString(c.getColumnIndex(DB_Settings.COL_NAME)),c.getFloat(c.getColumnIndex(DB_Settings.COL_VOLUME)), UniverseObjectProperties.OBJECT_GALAXY);
 
+            galaxy.setMyPosition(pos);
+            galaxy.setSolarSystems(db.getSolarSystemsOfGalaxy(c.getString(c.getColumnIndex(DB_Settings.COL_NAME))));
 
-            if(galaxy != null) {
-                int adder = 0;
-                float x =  galaxy.getX() + adder;
-                float y =  galaxy.getY() + adder;
-                float z =  galaxy.getZ() + adder;
+//            if(galaxy != null) {
+//                int adder = 0;
+//                float x =  galaxy.getX() + adder;
+//                float y =  galaxy.getY() + adder;
+//                float z =  galaxy.getZ() + adder;
 //                System.out.println("Show " + galaxy.getName() + "@ X:" + x + " Y:" + y + "Z:" + z);
 
                 galaxies[i] = galaxy;
+            c.close();
             }
+
         }
 
-    }
+
 
     /**
      * Gets all {@link Star stars} and {@link Planet planets} of this {@link SolarSystem}. They have to be casted.
@@ -91,7 +95,7 @@ public class StarMapBuilder {
     }
 
     /**
-     * Gets all {@link Moon moons} and {@link com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.City cities} of this {@link Planet plan}. They have to be casted.
+     * Gets all {@link Moon moons} and {@link com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.City cities} of this {@link Planet parent}. They have to be casted.
      * @param parent
      * @return
      *  Contains two arrays
