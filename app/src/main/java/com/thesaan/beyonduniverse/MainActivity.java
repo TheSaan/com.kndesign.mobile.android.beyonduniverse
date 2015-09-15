@@ -25,9 +25,15 @@ public class MainActivity extends Activity implements View.OnClickListener{
     Button loadButton, starMapButton, scaleUpButton, scaleDownButton;
     Button backToUniverseLayerButton;
 
-    SeekBar waitBar;
-
+    /**
+     * The canvas surface to draw onto.
+     */
     public StarMapSurface gameSurface;
+
+    /**
+     * To define the waiting distance between redraw steps of the {@link #gameSurface}
+     */
+    SeekBar waitBar;
 
     TextView tv, waitInfo,dbInfoText, selectedObjectInfo, starMapModeInfo;
 
@@ -36,9 +42,16 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
     public static AppDatabase uDb;
 
+    /**
+     * To get internal storage files
+     */
     public static File internalDir;
 
+    /**
+     * For Building the universe objects from database
+     */
     private UniverseMap map;
+
 
     Universe mUniverse;
 
@@ -83,26 +96,40 @@ public class MainActivity extends Activity implements View.OnClickListener{
         }
     }
 
-    /*----------------------------------------SETTERS-----------------------------------*/
+    //===============================================================================
+    //= SETTERS & GETTERS
+    //===============================================================================
     public void setOptionsText(String text){
         if(tv != null){
             tv.setText(text);
         }
     }
+
     public void setLoadingText(String text){
         if(tv != null){
             tv.setText(text);
         }
     }
+
     public void setSelectedObjectInfo(String name){
         selectedObjectInfo.setText("\tSelected object: "+name);
     }
+
     public void setStarMapModeInfo(String mode){
         starMapModeInfo.setText(mode);
     }
-    /*----------------------------------------GETTERS-----------------------------------*/
-    /*----------------------------------------BOOLERS-----------------------------------*/
-    /*----------------------------------------HANDLERS-----------------------------------*/
+
+    //===============================================================================
+    //= BOOLS
+    //===============================================================================
+
+    //===============================================================================
+    //= HANDLER
+    //===============================================================================
+
+    /**
+     * Shows the global data of the database like amount of objects, etc.
+     */
     public void printUniverseObjectProportions(){
         System.out.println(
                 "ALLOWED\nGalaxies:"+Universe.numberOfAllowedGalaxies+"\n"+
@@ -124,6 +151,10 @@ public class MainActivity extends Activity implements View.OnClickListener{
                         "Av. each "+Universe.averageAmountOfMoonsAroundPlanet+". Planet has a moon"
         );
     }
+
+    /**
+     * Setup all views
+     */
     private void initViews() {
 
 //        loadButton = (Button)findViewById(R.id.loadButton);
@@ -182,6 +213,8 @@ public class MainActivity extends Activity implements View.OnClickListener{
         });
 
     }
+
+
     @Override
     public void onClick(View v) {
         switch (v.getId()){

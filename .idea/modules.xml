@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/BeyondUniverse.iml" filepath="$PROJECT_DIR$/BeyondUniverse.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.thesaan.android.game.beyonduniverse.iml" filepath="$PROJECT_DIR$/com.thesaan.android.game.beyonduniverse.iml" />
     </modules>
   </component>
 </project>

@@ -33,6 +33,19 @@ public class AppDatabase extends Database implements DB_Settings {
 
     ServerDatabase server;
 
+
+    /**
+     * Test for connection to database.
+     * If the server is not available, use
+     * the offline database of the app
+     */
+
+    boolean isOnline = false;
+    boolean failedToConnect = false;
+    boolean isConnectionAvailable = false;
+    boolean isConnected = false;
+
+
     public AppDatabase(Context context) {
         super(context, DATABASE_NAME_UNIVERSE_GAME);
         this.db = this.getWritableDatabase();
@@ -690,45 +703,62 @@ public class AppDatabase extends Database implements DB_Settings {
 
 
     public void addWorld(Galaxy[] galaxies) {
+
+
         for (int i = 0; i < galaxies.length; i++) {
-            //TODO insert link for webserver
-            server.setInsertLink("http://"+DB_Settings.HOST+"/beyond-universe/rec_in.php");
+            if (server.isConnected()) {
+                //TODO insert link for webserver
+                server.setInsertLink("http://" + DB_Settings.HOST + "/beyond-universe/rec_in.php");
+            }
             addGalaxy(galaxies[i]);
         }
     }
 
     //Test method for server insert testing
-    public void addEmptyGalaxy(){
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
-        pairs.add(new BasicNameValuePair(COL_NAME, "Test"));
-        pairs.add(new BasicNameValuePair(COL_RADIUS, "" +2304234023f));
-        pairs.add(new BasicNameValuePair(COL_VOLUME, "" + 5455416f));
-        pairs.add(new BasicNameValuePair(COL_SOLARSYSTEMS, "solarsystems string"));
-        pairs.add(new BasicNameValuePair(COL_POS_X, "" + 255f));
-        pairs.add(new BasicNameValuePair(COL_POS_Y, "" + 155f));
-        pairs.add(new BasicNameValuePair(COL_POS_Z, "" + 262f));
+    public void addEmptyGalaxy() {
+        if (server.isConnectionAvailable() && !server.isConnected()) {
+            try {
+                server.connect();
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("Failed to connect to server database!");
+            }
+        } else {
+
+            if (server.isOnline() && server.isConnected()) {
+                List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
+                pairs.add(new BasicNameValuePair(COL_NAME, "Test"));
+                pairs.add(new BasicNameValuePair(COL_RADIUS, "" + 2304234023f));
+                pairs.add(new BasicNameValuePair(COL_VOLUME, "" + 5455416f));
+                pairs.add(new BasicNameValuePair(COL_SOLARSYSTEMS, "solarsystems string"));
+                pairs.add(new BasicNameValuePair(COL_POS_X, "" + 255f));
+                pairs.add(new BasicNameValuePair(COL_POS_Y, "" + 155f));
+                pairs.add(new BasicNameValuePair(COL_POS_Z, "" + 262f));
         /*
          *To create an array in PHP with the contained column names
          */
-        pairs.add(new BasicNameValuePair("column_names",
-                COL_NAME + ";" +
-                        COL_RADIUS + ";" +
-                        COL_VOLUME + ";" +
-                        COL_SOLARSYSTEMS + ";" +
-                        COL_POS_X + ";" +
-                        COL_POS_Y + ";" +
-                        COL_POS_Z
-        ));
+                pairs.add(new BasicNameValuePair("column_names",
+                        COL_NAME + ";" +
+                                COL_RADIUS + ";" +
+                                COL_VOLUME + ";" +
+                                COL_SOLARSYSTEMS + ";" +
+                                COL_POS_X + ";" +
+                                COL_POS_Y + ";" +
+                                COL_POS_Z
+                ));
 
-        try {
-            server.insert(pairs, DATABASE_TABLE_GALAXIES);
-        }catch (Exception e){
-            e.printStackTrace();
+                try {
+                    server.insert(pairs, DATABASE_TABLE_GALAXIES);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
+
     }
+
     //test end
     public void addGalaxy(Galaxy g) {
-
         int startSolarSystemIndex = getLastSolarSystemIndex() + 1;
 
         SolarSystem[] systems = g.getSolarsystems();
@@ -737,28 +767,42 @@ public class AppDatabase extends Database implements DB_Settings {
             addSolarSystem(systems[i], g.getName());
         }
 
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
-        pairs.add(new BasicNameValuePair(COL_NAME, g.getName()));
-        pairs.add(new BasicNameValuePair(COL_RADIUS, "" + g.getRadius()));
-        pairs.add(new BasicNameValuePair(COL_VOLUME, "" + g.getVolume()));
-        pairs.add(new BasicNameValuePair(COL_SOLARSYSTEMS, createChildrenChain(startSolarSystemIndex, getLastSolarSystemIndex())));
-        pairs.add(new BasicNameValuePair(COL_POS_X, "" + g.getX()));
-        pairs.add(new BasicNameValuePair(COL_POS_Y, "" + g.getY()));
-        pairs.add(new BasicNameValuePair(COL_POS_Z, "" + g.getZ()));
+        if (server.isConnected()) {
+
+            List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
+            pairs.add(new BasicNameValuePair(COL_NAME, g.getName()));
+            pairs.add(new BasicNameValuePair(COL_RADIUS, "" + g.getRadius()));
+            pairs.add(new BasicNameValuePair(COL_VOLUME, "" + g.getVolume()));
+            pairs.add(new BasicNameValuePair(COL_SOLARSYSTEMS, createChildrenChain(startSolarSystemIndex, getLastSolarSystemIndex())));
+            pairs.add(new BasicNameValuePair(COL_POS_X, "" + g.getX()));
+            pairs.add(new BasicNameValuePair(COL_POS_Y, "" + g.getY()));
+            pairs.add(new BasicNameValuePair(COL_POS_Z, "" + g.getZ()));
         /*
          *To create an array in PHP with the contained column names
          */
-        pairs.add(new BasicNameValuePair("column_names",
-                COL_NAME + ";" +
-                        COL_RADIUS + ";" +
-                        COL_VOLUME + ";" +
-                        COL_SOLARSYSTEMS + ";" +
-                        COL_POS_X + ";" +
-                        COL_POS_Y + ";" +
-                        COL_POS_Z
-        ));
+            pairs.add(new BasicNameValuePair("column_names",
+                    COL_NAME + ";" +
+                            COL_RADIUS + ";" +
+                            COL_VOLUME + ";" +
+                            COL_SOLARSYSTEMS + ";" +
+                            COL_POS_X + ";" +
+                            COL_POS_Y + ";" +
+                            COL_POS_Z
+            ));
 
-        server.insert(pairs, DATABASE_TABLE_GALAXIES);
+            server.insert(pairs, DATABASE_TABLE_GALAXIES);
+        } else {
+            ContentValues cv = new ContentValues();
+            cv.put(COL_NAME, g.getName());
+            cv.put(COL_RADIUS, "" + g.getRadius());
+            cv.put(COL_VOLUME, "" + g.getVolume());
+            cv.put(COL_SOLARSYSTEMS, createChildrenChain(startSolarSystemIndex, getLastSolarSystemIndex()));
+            cv.put(COL_POS_X, "" + g.getX());
+            cv.put(COL_POS_Y, "" + g.getY());
+            cv.put(COL_POS_Z, "" + g.getZ());
+
+            db.insert(DATABASE_TABLE_GALAXIES, null, cv);
+        }
     }
 
     public void addSolarSystem(SolarSystem s, String parent) {
@@ -775,60 +819,88 @@ public class AppDatabase extends Database implements DB_Settings {
         for (int i = 0; i < planets.length; i++) {
             addPlanet(planets[i], s.getName());
         }
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
-        pairs.add(new BasicNameValuePair(COL_NAME, s.getName()));
-        pairs.add(new BasicNameValuePair(COL_PARENT, parent));
-        pairs.add(new BasicNameValuePair(COL_PLANETS, createChildrenChain(planetStartIndex, getLastPlanetIndex())));
-        pairs.add(new BasicNameValuePair(COL_STARS, createChildrenChain(starStartIndex, getLastStarIndex())));
-        pairs.add(new BasicNameValuePair(COL_VOLUME, "" + s.getVolume()));
-        pairs.add(new BasicNameValuePair(COL_POS_X, "" + s.getX()));
-        pairs.add(new BasicNameValuePair(COL_POS_Y, "" + s.getY()));
-        pairs.add(new BasicNameValuePair(COL_POS_Z, "" + s.getZ()));
+
+        if(server.isConnected()) {
+            List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
+            pairs.add(new BasicNameValuePair(COL_NAME, s.getName()));
+            pairs.add(new BasicNameValuePair(COL_PARENT, parent));
+            pairs.add(new BasicNameValuePair(COL_PLANETS, createChildrenChain(planetStartIndex, getLastPlanetIndex())));
+            pairs.add(new BasicNameValuePair(COL_STARS, createChildrenChain(starStartIndex, getLastStarIndex())));
+            pairs.add(new BasicNameValuePair(COL_VOLUME, "" + s.getVolume()));
+            pairs.add(new BasicNameValuePair(COL_POS_X, "" + s.getX()));
+            pairs.add(new BasicNameValuePair(COL_POS_Y, "" + s.getY()));
+            pairs.add(new BasicNameValuePair(COL_POS_Z, "" + s.getZ()));
 
         /*
          *To create an array in PHP with the contained column names
          */
-        pairs.add(new BasicNameValuePair("column_names",
-                COL_NAME + ";" +
-                        COL_PARENT + ";" +
-                        COL_PLANETS + ";" +
-                        COL_STARS + ";" +
-                        COL_VOLUME + ";" +
-                        COL_SOLARSYSTEMS + ";" +
-                        COL_POS_X + ";" +
-                        COL_POS_Y + ";" +
-                        COL_POS_Z
-        ));
+            pairs.add(new BasicNameValuePair("column_names",
+                    COL_NAME + ";" +
+                            COL_PARENT + ";" +
+                            COL_PLANETS + ";" +
+                            COL_STARS + ";" +
+                            COL_VOLUME + ";" +
+                            COL_SOLARSYSTEMS + ";" +
+                            COL_POS_X + ";" +
+                            COL_POS_Y + ";" +
+                            COL_POS_Z
+            ));
 
-        server.insert(pairs, DATABASE_TABLE_SOLARSYSTEMS);
+            server.insert(pairs, DATABASE_TABLE_SOLARSYSTEMS);
+        }else{
+            cv.put(COL_NAME, s.getName());
+            cv.put(COL_PARENT, parent);
+            cv.put(COL_PLANETS, createChildrenChain(planetStartIndex, getLastPlanetIndex()));
+            cv.put(COL_STARS, createChildrenChain(starStartIndex, getLastStarIndex()));
+            cv.put(COL_VOLUME, "" + s.getVolume());
+            cv.put(COL_POS_X, "" + s.getX());
+            cv.put(COL_POS_Y, "" + s.getY());
+            cv.put(COL_POS_Z, "" + s.getZ());
+
+            db.insert(DATABASE_TABLE_SOLARSYSTEMS,null,cv);
+        }
     }
 
     public void addStar(Star s, String parent) {
         ContentValues cv = new ContentValues();
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
-        pairs.add(new BasicNameValuePair(COL_NAME, s.getName()));
-        pairs.add(new BasicNameValuePair(COL_PARENT, parent));
-        pairs.add(new BasicNameValuePair(COL_RADIUS, "" + s.getRadius()));
-        pairs.add(new BasicNameValuePair(COL_DEGREES, "" + s.getDegrees()));
-        pairs.add(new BasicNameValuePair(COL_MASS, "" + s.getMass()));
-        pairs.add(new BasicNameValuePair(COL_POS_X, "" + s.getX()));
-        pairs.add(new BasicNameValuePair(COL_POS_Y, "" + s.getY()));
-        pairs.add(new BasicNameValuePair(COL_POS_Z, "" + s.getZ()));
+
+        if(server.isConnected()) {
+            List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
+            pairs.add(new BasicNameValuePair(COL_NAME, s.getName()));
+            pairs.add(new BasicNameValuePair(COL_PARENT, parent));
+            pairs.add(new BasicNameValuePair(COL_RADIUS, "" + s.getRadius()));
+            pairs.add(new BasicNameValuePair(COL_DEGREES, "" + s.getDegrees()));
+            pairs.add(new BasicNameValuePair(COL_MASS, "" + s.getMass()));
+            pairs.add(new BasicNameValuePair(COL_POS_X, "" + s.getX()));
+            pairs.add(new BasicNameValuePair(COL_POS_Y, "" + s.getY()));
+            pairs.add(new BasicNameValuePair(COL_POS_Z, "" + s.getZ()));
 
         /*
          *To create an array in PHP with the contained column names
          */
-        pairs.add(new BasicNameValuePair("column_names",
-                COL_NAME + ";" +
-                        COL_PARENT + ";" +
-                        COL_RADIUS + ";" +
-                        COL_DEGREES + ";" +
-                        COL_MASS + ";" +
-                        COL_POS_X + ";" +
-                        COL_POS_Y + ";" +
-                        COL_POS_Z
-        ));
-        server.insert(pairs, DATABASE_TABLE_STARS);
+            pairs.add(new BasicNameValuePair("column_names",
+                    COL_NAME + ";" +
+                            COL_PARENT + ";" +
+                            COL_RADIUS + ";" +
+                            COL_DEGREES + ";" +
+                            COL_MASS + ";" +
+                            COL_POS_X + ";" +
+                            COL_POS_Y + ";" +
+                            COL_POS_Z
+            ));
+            server.insert(pairs, DATABASE_TABLE_STARS);
+        }else{
+            cv.put(COL_NAME, s.getName());
+            cv.put(COL_PARENT, parent);
+            cv.put(COL_RADIUS, "" + s.getRadius());
+            cv.put(COL_DEGREES, "" + s.getDegrees());
+            cv.put(COL_MASS, "" + s.getMass());
+            cv.put(COL_POS_X, "" + s.getX());
+            cv.put(COL_POS_Y, "" + s.getY());
+            cv.put(COL_POS_Z, "" + s.getZ());
+
+            db.insert(DATABASE_TABLE_STARS,null,cv);
+        }
     }
 
     public void addPlanet(Planet p, String parent) {
@@ -849,19 +921,72 @@ public class AppDatabase extends Database implements DB_Settings {
             for (int i = 0; i < cities.length; i++) {
                 addCity(cities[i], p.getName());
             }
-            List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
-            pairs.add(new BasicNameValuePair(COL_NAME, p.getName()));
+            if(server.isConnected()) {
+                List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
+                pairs.add(new BasicNameValuePair(COL_NAME, p.getName()));
+                pairs.add(new BasicNameValuePair(COL_PARENT, parent));
+                pairs.add(new BasicNameValuePair(COL_RADIUS, "" + p.getRadius()));
+                pairs.add(new BasicNameValuePair(COL_PlANET_TYPE, "" + p.getPlanetType()));
+                pairs.add(new BasicNameValuePair(COL_DEGREES, "" + p.getDegrees()));
+                pairs.add(new BasicNameValuePair(COL_POPULATION, "" + p.getPopulation()));
+                pairs.add(new BasicNameValuePair(COL_MOONS, createChildrenChain(moonStartIndex, getLastMoonIndex())));
+                pairs.add(new BasicNameValuePair(COL_CITIES, createChildrenChain(cityStartIndex, getLastCityIndex())));
+                pairs.add(new BasicNameValuePair(COL_MASS, "" + p.getMass()));
+                pairs.add(new BasicNameValuePair(COL_POS_X, "" + p.getX()));
+                pairs.add(new BasicNameValuePair(COL_POS_Y, "" + p.getY()));
+                pairs.add(new BasicNameValuePair(COL_POS_Z, "" + p.getZ()));
+             /*
+         *To create an array in PHP with the contained column names
+         */
+                pairs.add(new BasicNameValuePair("column_names",
+                        COL_NAME + ";" +
+                                COL_PARENT + ";" +
+                                COL_RADIUS + ";" +
+                                COL_PlANET_TYPE + ";" +
+                                COL_DEGREES + ";" +
+                                COL_POPULATION + ";" +
+                                COL_MOONS + ";" +
+                                COL_CITIES + ";" +
+                                COL_MASS + ";" +
+                                COL_POS_X + ";" +
+                                COL_POS_Y + ";" +
+                                COL_POS_Z
+                ));
+                server.insert(pairs, DATABASE_TABLE_PLANETS);
+            }else{
+
+                cv.put(COL_NAME, p.getName());
+                cv.put(COL_PARENT, parent);
+                cv.put(COL_RADIUS, "" + p.getRadius());
+                cv.put(COL_PlANET_TYPE, "" + p.getPlanetType());
+                cv.put(COL_DEGREES, "" + p.getDegrees());
+                cv.put(COL_POPULATION, "" + p.getPopulation());
+                cv.put(COL_MOONS, createChildrenChain(moonStartIndex, getLastMoonIndex()));
+                cv.put(COL_CITIES, createChildrenChain(cityStartIndex, getLastCityIndex()));
+                cv.put(COL_MASS, "" + p.getMass());
+                cv.put(COL_POS_X, "" + p.getX());
+                cv.put(COL_POS_Y, "" + p.getY());
+                cv.put(COL_POS_Z, "" + p.getZ());
+
+                db.insert(DATABASE_TABLE_PLANETS,null,cv);
+            }
+        }
+    }
+
+    public void addMoon(Moon m, String parent) {
+        ContentValues cv = new ContentValues();
+        List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
+
+        if(server.isConnected()) {
+            pairs.add(new BasicNameValuePair(COL_NAME, m.getName()));
             pairs.add(new BasicNameValuePair(COL_PARENT, parent));
-            pairs.add(new BasicNameValuePair(COL_RADIUS, "" + p.getRadius()));
-            pairs.add(new BasicNameValuePair(COL_PlANET_TYPE, "" + p.getPlanetType()));
-            pairs.add(new BasicNameValuePair(COL_DEGREES, "" + p.getDegrees()));
-            pairs.add(new BasicNameValuePair(COL_POPULATION, "" + p.getPopulation()));
-            pairs.add(new BasicNameValuePair(COL_MOONS, createChildrenChain(moonStartIndex, getLastMoonIndex())));
-            pairs.add(new BasicNameValuePair(COL_CITIES, createChildrenChain(cityStartIndex, getLastCityIndex())));
-            pairs.add(new BasicNameValuePair(COL_MASS, "" + p.getMass()));
-            pairs.add(new BasicNameValuePair(COL_POS_X, "" + p.getX()));
-            pairs.add(new BasicNameValuePair(COL_POS_Y, "" + p.getY()));
-            pairs.add(new BasicNameValuePair(COL_POS_Z, "" + p.getZ()));
+            pairs.add(new BasicNameValuePair(COL_RADIUS, "" + m.getRadius()));
+            pairs.add(new BasicNameValuePair(COL_MASS, "" + m.getMass()));
+            pairs.add(new BasicNameValuePair(COL_DEGREES, "" + m.getDegrees()));
+            pairs.add(new BasicNameValuePair(COL_POS_X, "" + m.getX()));
+            pairs.add(new BasicNameValuePair(COL_POS_Y, "" + m.getY()));
+            pairs.add(new BasicNameValuePair(COL_POS_Z, "" + m.getZ()));
+
              /*
          *To create an array in PHP with the contained column names
          */
@@ -869,47 +994,25 @@ public class AppDatabase extends Database implements DB_Settings {
                     COL_NAME + ";" +
                             COL_PARENT + ";" +
                             COL_RADIUS + ";" +
-                            COL_PlANET_TYPE + ";" +
-                            COL_DEGREES + ";" +
-                            COL_POPULATION + ";" +
-                            COL_MOONS + ";" +
-                            COL_CITIES + ";" +
                             COL_MASS + ";" +
+                            COL_DEGREES + ";" +
                             COL_POS_X + ";" +
                             COL_POS_Y + ";" +
                             COL_POS_Z
             ));
-            server.insert(pairs, DATABASE_TABLE_PLANETS);
+            server.insert(pairs, DATABASE_TABLE_MOONS);
+        }else{
+            cv.put(COL_NAME, m.getName());
+            cv.put(COL_PARENT, parent);
+            cv.put(COL_RADIUS, "" + m.getRadius());
+            cv.put(COL_MASS, "" + m.getMass());
+            cv.put(COL_DEGREES, "" + m.getDegrees());
+            cv.put(COL_POS_X, "" + m.getX());
+            cv.put(COL_POS_Y, "" + m.getY());
+            cv.put(COL_POS_Z, "" + m.getZ());
+
+            db.insert(DATABASE_TABLE_MOONS,null,cv);
         }
-    }
-
-    public void addMoon(Moon m, String parent) {
-        ContentValues cv = new ContentValues();
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
-        pairs.add(new BasicNameValuePair(COL_NAME, m.getName()));
-        pairs.add(new BasicNameValuePair(COL_PARENT, parent));
-        pairs.add(new BasicNameValuePair(COL_RADIUS, "" + m.getRadius()));
-        pairs.add(new BasicNameValuePair(COL_MASS, "" + m.getMass()));
-        pairs.add(new BasicNameValuePair(COL_DEGREES, "" + m.getDegrees()));
-        pairs.add(new BasicNameValuePair(COL_POS_X, "" + m.getX()));
-        pairs.add(new BasicNameValuePair(COL_POS_Y, "" + m.getY()));
-        pairs.add(new BasicNameValuePair(COL_POS_Z, "" + m.getZ()));
-
-             /*
-         *To create an array in PHP with the contained column names
-         */
-        pairs.add(new BasicNameValuePair("column_names",
-                COL_NAME + ";" +
-                        COL_PARENT + ";" +
-                        COL_RADIUS + ";" +
-                        COL_MASS + ";" +
-                        COL_DEGREES + ";" +
-                        COL_POS_X + ";" +
-                        COL_POS_Y + ";" +
-                        COL_POS_Z
-        ));
-        server.insert(pairs, DATABASE_TABLE_MOONS);
-
     }
 
     public void addCity(City c, String parent) {
@@ -920,32 +1023,45 @@ public class AppDatabase extends Database implements DB_Settings {
 
         //TODO save market
         addMarket(c);
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
-        pairs.add(new BasicNameValuePair(COL_NAME, c.getName()));
-        pairs.add(new BasicNameValuePair(COL_PARENT, parent));
-        pairs.add(new BasicNameValuePair(COL_POPULATION, "" + c.getPopulation()));
-        pairs.add(new BasicNameValuePair(COL_MARKET, marketStartIndex + ";"));
+        if(server.isConnected()) {
+            List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
+            pairs.add(new BasicNameValuePair(COL_NAME, c.getName()));
+            pairs.add(new BasicNameValuePair(COL_PARENT, parent));
+            pairs.add(new BasicNameValuePair(COL_POPULATION, "" + c.getPopulation()));
+            pairs.add(new BasicNameValuePair(COL_MARKET, marketStartIndex + ";"));
 
 
              /*
          *To create an array in PHP with the contained column names
          */
-        pairs.add(new BasicNameValuePair("column_names",
-                COL_NAME + ";" +
-                        COL_PARENT + ";" +
-                        COL_POPULATION + ";" +
-                        COL_MARKET
-        ));
-        server.insert(pairs, DATABASE_TABLE_CITIES);
+            pairs.add(new BasicNameValuePair("column_names",
+                    COL_NAME + ";" +
+                            COL_PARENT + ";" +
+                            COL_POPULATION + ";" +
+                            COL_MARKET
+            ));
+            server.insert(pairs, DATABASE_TABLE_CITIES);
+        }else{
+            cv.put(COL_NAME, c.getName());
+            cv.put(COL_PARENT, parent);
+            cv.put(COL_POPULATION, "" + c.getPopulation());
+            cv.put(COL_MARKET, marketStartIndex + ";");
+        }
     }
 
     public void addMarket(City c) {
         ContentValues cv = new ContentValues();
 
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
-        //TODO Market integrieren
-        pairs.add(new BasicNameValuePair(COL_PARENT, c.getName()));
+        if(server.isConnected()) {
+            List<NameValuePair> pairs = new ArrayList<NameValuePair>(1);
+            //TODO Market integrieren
+            pairs.add(new BasicNameValuePair(COL_PARENT, c.getName()));
 //        server.insert(pairs,DATABASE_TABLE_MARKETS);
+        }else{
+            cv.put(COL_PARENT, c.getName());
+
+            db.insert(DATABASE_TABLE_MARKETS,null,cv);
+        }
     }
 
     private String createChildrenChain(int start, int end) {

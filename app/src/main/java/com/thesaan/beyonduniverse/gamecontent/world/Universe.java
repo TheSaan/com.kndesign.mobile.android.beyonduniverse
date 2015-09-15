@@ -47,22 +47,19 @@ public class Universe implements UniverseObjectProperties {
     String name;
     float X, Y, Z;
 
+    /**
+     * Static array to get the set objects out of the thread object
+     */
+    private UniverseObject[] objects;
 
     float availableObjects = numberOfAvailableObjects;
-    /*
-    *The following sizes guarantee that at least all possible objects fit into the universe
-    * */
 
-
-    //these counters count the number of created objects
-    //which should be the same as the indexes in the
-    //certain table of the objects
-    private int galaxyIndex = 0;
-    private int solarSystemIndex = 0;
-    private int starIndex = 0;
-    private int planetIndex = 0;
-    private int moonIndex = 0;
-    private int cityIndex = 0;
+    /**
+     * These counters count the number of created objects
+     * which should be the same as the indexes in the
+     * certain table of the objects
+     */
+    private int galaxyIndex = 0, solarSystemIndex = 0, starIndex = 0, planetIndex = 0, moonIndex = 0, cityIndex = 0;
 
     private int[] amountIndexes = {
             galaxyIndex,
@@ -97,10 +94,10 @@ public class Universe implements UniverseObjectProperties {
                 @Override
                 public void run() {
 //                    createWorld();
-//                    createGalaxies(5);
+//                    createGalaxies(15, 5);
 
                     //test method
-                    uDb.addEmptyGalaxy();
+                    //uDb.addEmptyGalaxy();
                 }
             });
 
@@ -126,6 +123,7 @@ public class Universe implements UniverseObjectProperties {
     /**
      * Creates a certain amount of {@link Galaxy}s with a
      * certain amount of {@link SolarSystem}s
+     *
      * @param amount
      */
     private void createGalaxies(int amount, int amountOfSystems) {
@@ -150,62 +148,79 @@ public class Universe implements UniverseObjectProperties {
     private Galaxy[] createWorld() {
 
         try {
-            Random r = new Random();
-            int amountOfGalaxies = RandomHandler.createIntegerFromRange(50, numberOfAllowedGalaxies, r);
-            Galaxy[] galaxies = new Galaxy[amountOfGalaxies];
+            Thread T = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Random r = new Random();
+                    int amountOfGalaxies = RandomHandler.createIntegerFromRange(50, numberOfAllowedGalaxies, r);
+                    Galaxy[] galaxies = new Galaxy[amountOfGalaxies];
 
-            addObjectsToLoad(amountOfGalaxies);
+                    addObjectsToLoad(amountOfGalaxies);
 
-            //create galaxy after galaxy
-            for (int i = 0; i < amountOfGalaxies; i++) {
+                    //create galaxy after galaxy
+                    for (int i = 0; i < amountOfGalaxies; i++) {
 
-                int numberOfSolarsystems = RandomHandler.createIntegerFromRange(50, numberOfAllowedSolarSystems / amountOfGalaxies, r);
+                        final int numberOfSolarsystems = RandomHandler.createIntegerFromRange(50, numberOfAllowedSolarSystems / amountOfGalaxies, r);
 
-                //count created galaxies
-                galaxyIndex++;
+                        //count created galaxies
+                        galaxyIndex++;
 
-                //the volume
-                volume = UniverseObject.setRandomVolume(OBJECT_GALAXY);
+                        //the volume
+                        volume = UniverseObject.setRandomVolume(OBJECT_GALAXY);
+                        //create solar systems for galaxy
 
-                Galaxy g = new Galaxy("", volume, OBJECT_GALAXY);
 
-                //create solar systems for galaxy
-                SolarSystem[] solarSystems = createSolarSystems(numberOfSolarsystems, g);
-                //test
-                solarsystems2 = solarSystems.length;
+                        Galaxy g = new Galaxy("", volume, OBJECT_GALAXY);
 
-                g.setSolarSystems(solarSystems);
 
-                X = g.getPosition().getXf();
-                Y = g.getPosition().getYf();
-                Z = g.getPosition().getZf();
-                //test
+                        SolarSystem[] solarSystems = createSolarSystems(numberOfSolarsystems, g);
 
-                //new galaxy with random data
-                galaxies[i] = g;
+                        //test
+                        solarsystems2 = solarSystems.length;
 
-                name = galaxies[i].getName();
+                        g.setSolarSystems(solarSystems);
 
-                Log.v(LOG_TAG_CREATE_WORLD_INFO, "Create galaxy at positionX: " + X + "\nY: " + Y + "\nZ: " + Z + " with\n" + solarsystems2 + " solarsystems.\n Volume: " + volume + " and called " + name);
+                        X = g.getPosition().getXf();
+                        Y = g.getPosition().getYf();
+                        Z = g.getPosition().getZf();
+                        //test
 
+                        //new galaxy with random data
+                        galaxies[i] = g;
+
+                        name = galaxies[i].getName();
+
+                        Log.v(LOG_TAG_CREATE_WORLD_INFO, "Create galaxy at positionX: " + X + "\nY: " + Y + "\nZ: " + Z + " with\n" + solarsystems2 + " solarsystems.\n Volume: " + volume + " and called " + name);
+                    }
+                    objects = galaxies;
+                }
+            });
+
+            T.start();
+            try {
+                return (Galaxy[]) objects;
+            } catch (Exception error) {
+                error.printStackTrace();
+                return null;
             }
-
-            return galaxies;
         } catch (Exception e) {
-            System.err.println("Galaxy Loop: " + e);
+            e.printStackTrace();
             return null;
         }
     }
 
     /**
      * Creates {@link SolarSystem}s in the parent {@link Galaxy}
+     *
      * @param amount
      * @param parent
      * @return
      */
     private SolarSystem[] createSolarSystems(int amount, Galaxy parent) {
+        final int a = amount;
+        final Galaxy p = parent;
         try {
-            SolarSystem[] solarSystems = new SolarSystem[amount];
+            SolarSystem[] solarSystems = new SolarSystem[a];
 
             for (int i = 0; i < solarSystems.length; i++) {
 
@@ -223,9 +238,10 @@ public class Universe implements UniverseObjectProperties {
                 //the stars will be created in the middle of the solar System
 
                 //test
-                SolarSystem s = new SolarSystem("", volume, parent, radius, OBJECT_SOLARSYSTEM);
+                SolarSystem s = new SolarSystem("", volume, p, radius, OBJECT_SOLARSYSTEM);
 
                 Star[] stars = createStars(s.getPosition());
+
                 Planet[] planets = createPlanets(RandomHandler.createIntegerFromRange(0, 20, r), s.getPosition());
 
                 s.setStars(stars);
@@ -240,36 +256,42 @@ public class Universe implements UniverseObjectProperties {
                 name = solarSystems[i].getName();
 
                 Log.v(LOG_TAG_CREATE_WORLD_INFO, "\tCreate solarsystem at position \n" + "X: " + X + "\nY: " + Y + "\nZ: " + Z + "\nwith " + planets2 + " planets and " + stars2 + " Star(s)." + " And called " + name);
-
-                //Thread.sleep(25);
             }
-            return solarSystems;
+            try {
+                return solarSystems;
+            } catch (Exception error) {
+                error.printStackTrace();
+                return null;
+            }
         } catch (Exception e) {
-            //System.err.println("Solarsystem Loop: " + e);
+            e.printStackTrace();
             return null;
         }
     }
 
     /**
      * Creates {@link Planet}s in the parent solar system
+     *
      * @param amount
      * @param solarSystemPosition
      * @return
      */
     private Planet[] createPlanets(int amount, MathHandler.Vector solarSystemPosition) {
-
-
-        Planet[] planets = new Planet[amount];
-
-        City[] cities;
+        final int a = amount;
+        final MathHandler.Vector sPos = solarSystemPosition;
         try {
-            addObjectsToLoad(amount);
+
+            Planet[] planets = new Planet[a];
+
+            City[] cities;
+
+            addObjectsToLoad(a);
 
             for (int i = 0; i < planets.length; i++) {
 
                 planetIndex++;
 
-                MathHandler.Vector vec = UniverseObject.setRandomPlanetPosition(solarSystemPosition.getXf(), solarSystemPosition.getYf(), solarSystemPosition.getZf());
+                MathHandler.Vector vec = UniverseObject.setRandomPlanetPosition(sPos.getXf(), sPos.getYf(), sPos.getZf());
                 if (vec == null)
                     System.err.println("vec is null");
 
@@ -284,6 +306,9 @@ public class Universe implements UniverseObjectProperties {
                         planetType = PLANET_TYPE_DESSERT;
                     }
                     cities = createCities(RandomHandler.createIntegerFromRange(0, 5, r));
+
+                    //reset array
+                    objects = null;
                     addObjectsToLoad(cities.length);
                 } else {
 
@@ -323,12 +348,15 @@ public class Universe implements UniverseObjectProperties {
                 name = planets[i].getName();
 
 //                Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\tCreate planet with " + moons2 + " Moons and " + cities2 + " cities.\nMass: " + mass + " times the earth mass, Radius: " + radius + ", Degrees:  " + degrees + " .\nPopulation: " + population + " and called " + name + "\nPlanet type: " + Planet.getPlanetTypeName(planetType));
-
-                Thread.sleep(25);
             }
-            return planets;
+            try {
+                return planets;
+            } catch (Exception error) {
+                error.printStackTrace();
+                return null;
+            }
         } catch (Exception e) {
-            System.err.println("Planet " + planetIndex + " Loop: " + e);
+            e.printStackTrace();
             return null;
         }
     }
@@ -338,9 +366,9 @@ public class Universe implements UniverseObjectProperties {
      *
      * @return
      */
-    private Star[] createStars(MathHandler.Vector vec) {
+    private Star[] createStars(MathHandler.Vector vector) {
 
-
+        final MathHandler.Vector vec = vector;
         try {
             int amount;
             //creates a random number to choose if it will be a twin star system
@@ -376,16 +404,16 @@ public class Universe implements UniverseObjectProperties {
                 name = stars[i].getName();
 
                 Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\tCreate star with Mass: " + mass + " Temperature: " + degrees + " Radius: " + s.getRadius() + " and called " + name);
-                try {
-
-                    Thread.sleep(25);
-                } catch (Exception we) {
-                    System.err.println("Wait error\n" + we);
-                }
             }
-            return stars;
+
+            try {
+                return stars;
+            } catch (Exception error) {
+                error.printStackTrace();
+                return null;
+            }
         } catch (Exception e) {
-            System.err.println("Star Loop: " + e);
+            e.printStackTrace();
             return null;
         }
 
@@ -400,10 +428,10 @@ public class Universe implements UniverseObjectProperties {
      */
     private City[] createCities(int amount) {
 
-
-        City[] cities = new City[amount];
-        Market[] markets = new Market[amount];
+        final int a = amount;
         try {
+            City[] cities = new City[a];
+            Market[] markets = new Market[a];
 
 //            System.err.println("Cities " + cities.length);
 //            System.err.println("CitiesIndex " + cityIndex);
@@ -428,46 +456,57 @@ public class Universe implements UniverseObjectProperties {
                 population = cities[i].getPopulation();
 
                 Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\t\tCreate City " + name + " with a Population of " + population);
-                Thread.sleep(25);
             }
-            return cities;
+            try {
+                return cities;
+            } catch (Exception error) {
+                error.printStackTrace();
+                return null;
+            }
         } catch (Exception e) {
-            System.err.println("City Loop: " + e);
+            e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
     /**
      * Creates some Moons arround the planet.
      *
      * @param amount
-     * @param vec
+     * @param vector
      * @return
      */
-    private Moon[] createMoons(int amount, MathHandler.Vector vec) {
+    private Moon[] createMoons(int amount, MathHandler.Vector vector) {
 
+        final int a = amount;
+        final MathHandler.Vector vec = vector;
         try {
-            Moon[] moons = new Moon[amount];
+            MathHandler.Vector vec2;
+            Moon[] moons = new Moon[a];
 
-            for (int i = 0; i < amount; i++) {
+            for (int i = 0; i < a; i++) {
                 moonIndex++;
 
                 mass = UniverseObject.setRandomMass(OBJECT_MOON);
                 degrees = UniverseObject.setRandomTemperature(OBJECT_MOON);
 
-                vec = UniverseObject.setRandomMoonPosition(vec.getXf(), vec.getYf(), vec.getZf());
+                vec2 = UniverseObject.setRandomMoonPosition(vec.getXf(), vec.getYf(), vec.getZf());
 
-                Moon m = new Moon("", vec, mass, degrees, OBJECT_MOON);
+                Moon m = new Moon("", vec2, mass, degrees, OBJECT_MOON);
                 moons[i] = m;
 
                 name = moons[i].getName();
 
                 Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\t\tCreate Moon \nMass: " + mass + " times the earth mass, Radius: " + m.getRadius() + ", Degrees:  " + degrees + " called " + name);
-                Thread.sleep(25);
             }
-            return moons;
+            try {
+                return moons;
+            } catch (Exception error) {
+                error.printStackTrace();
+                return null;
+            }
         } catch (Exception e) {
-            System.err.println("Moon Loop: " + e);
+            e.printStackTrace();
             return null;
         }
     }
@@ -479,6 +518,7 @@ public class Universe implements UniverseObjectProperties {
      * @return
      */
     private Market[] createMarkets(int amount) {
+
         return new Market[amount];
     }
 
@@ -488,6 +528,8 @@ public class Universe implements UniverseObjectProperties {
      */
     public void setLoadProgress() {
         try {
+
+
             if (context instanceof MainActivity) {
                 ProgressBar pb = (ProgressBar) ((MainActivity) context).findViewById(R.id.loadProgressBar);
                 TextView tv = (TextView) ((MainActivity) context).findViewById(R.id.loadProgressTextView);

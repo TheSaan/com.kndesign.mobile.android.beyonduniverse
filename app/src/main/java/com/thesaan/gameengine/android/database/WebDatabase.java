@@ -31,10 +31,22 @@ import java.util.List;
 /**
  * Created by Michael on 28.07.2015.
  */
-public class WebDatabase {
+public class WebDatabase implements DB_Settings{
 
     private String username, password;
     private Context context;
+
+
+    /**
+     * Test for connection to database.
+     * If the server is not available, use
+     * the offline database of the app
+     */
+
+    private boolean isOnline = false;
+    private boolean failedToConnect = false;
+    private boolean isConnectionAvailable = false;
+    private boolean isConnected = false;
 
     protected boolean isDataEntered = false;
 
@@ -81,6 +93,7 @@ public class WebDatabase {
     }
 
     public String get() {
+
         try {
             URL url = new URL(link);
             HttpClient client = new DefaultHttpClient();
@@ -92,7 +105,9 @@ public class WebDatabase {
                     (new InputStreamReader(response.getEntity().getContent()));
 
             System.out.print(in.toString());
+
             return in.toString();
+
         } catch (MalformedURLException mex) {
             mex.printStackTrace();
             return null;
@@ -106,9 +121,7 @@ public class WebDatabase {
             io.printStackTrace();
             return null;
         }
-
     }
-
 
     public void setPostValues(String link, String[] valueNames, String[] values){
         //the check is in post()
@@ -134,6 +147,42 @@ public class WebDatabase {
             System.err.println("setPostValues() -> valueNames and values don't have the same length!");
         }
     }
+
+    public void connect(){
+        try {
+            URLConnection conn = url.openConnection();
+
+            if(conn.getURL() != null && conn.getURL().toString() != ""){
+                isConnected = true;
+            }else{
+                failedToConnect = true;
+                isConnected = false;
+            }
+        }catch(IOException io){
+
+            isConnected = false;
+            failedToConnect = true;
+            System.err.println(io);
+        }
+    }
+
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public boolean isConnectionAvailable() {
+        return isConnectionAvailable;
+    }
+
+    public boolean isFailedToConnect() {
+        return failedToConnect;
+    }
+
+    public boolean isOnline() {
+        return isOnline;
+    }
+
+
     /**
      * Works the same as the $_POST[] method in php.
      * Before calling this method, make sure you called {@linksetPostValues(String link, String[] valueNames, String[] values)}
@@ -146,11 +195,14 @@ public class WebDatabase {
                 URLConnection conn = url.openConnection();
 
                 OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+
                 wr.write(postData);
+
                 BufferedReader reader = new BufferedReader(new
                         InputStreamReader(conn.getInputStream()));
 
                 System.out.print(reader.toString());
+
                 return reader.readLine();
 
 
@@ -204,6 +256,7 @@ public class WebDatabase {
 
 
         }catch (ClientProtocolException e1){
+            System.err.println("Connection failed:\n");
             e1.printStackTrace();
         }catch (IOException e2){
             e2.printStackTrace();

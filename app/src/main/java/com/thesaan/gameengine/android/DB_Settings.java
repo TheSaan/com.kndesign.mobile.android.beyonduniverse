@@ -15,7 +15,8 @@ public interface DB_Settings {
      */
 
 //    String HOST = "192.168.1.2";
-    String HOST = "10.0.2.2";
+    String HOST = "85.214.213.58"; //strato webserver
+//    String HOST = "10.0.2.2";
 //    String HOST = "127.0.0.1";
 
 
@@ -295,8 +296,8 @@ public interface DB_Settings {
             + COL_NAME + " VARCHAR(50)" + NN + NEXT
             + COL_PARENT + INT + NEXT
             + COL_RADIUS + NUM + NN + NEXT
-            + COL_MASS + NUM + NN + NEXT
             + COL_DEGREES + NUM + NN + NEXT
+            + COL_MASS + NUM + NN + NEXT
             + COL_POS_X + NUM + NN + NEXT
             + COL_POS_Y + NUM + NN + NEXT
             + COL_POS_Z + NUM + NN
@@ -341,7 +342,7 @@ public interface DB_Settings {
             + COL_ID + AUTO_KEY_INT + NEXT
             + COL_NAME + " VARCHAR(50)" + NN + NEXT
             + COL_RADIUS + NUM + NN + NEXT
-            + COL_SOLARSYSTEMS + INT + NEXT
+            + COL_SOLARSYSTEMS + " VARCHAR(5000)" + NEXT
             + COL_VOLUME + NUM + NEXT
             + COL_POS_X + NUM + NN + NEXT
             + COL_POS_Y + NUM + NN + NEXT
