@@ -8,8 +8,8 @@ import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
  */
 public class City extends UniverseObject implements UniverseObjectProperties {
 
-    public City(String name, long population, Market market, int type){
-        super(name,population,market,type);
+    public City(String name, long population, Market market, int type,int seed){
+        super(name,population,market,type,seed);
     }
 
     public Market getMarket(){
@@ -18,4 +18,17 @@ public class City extends UniverseObject implements UniverseObjectProperties {
     public long getPopulation(){
         return population;
     }
+
+
+    /**
+     * Creates {@link Market}s for all cities.
+     *
+     * @param amount
+     * @return
+     */
+    private Market[] createMarkets(int amount) {
+
+        return new Market[amount];
+    }
+
 }

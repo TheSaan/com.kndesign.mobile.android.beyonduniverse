@@ -14,5 +14,5 @@ public interface Form {
     public void makeSurface(Canvas canvas, int look);
     public void makeRendered(Canvas canvas, int look);
 
-    public void onRotate(Canvas canvas, float angle, int mode, int direction, int axis);
+    public void onRotate(Canvas canvas, float angle, int direction,  int xAxis, int yAxis, int zAxis);
 }

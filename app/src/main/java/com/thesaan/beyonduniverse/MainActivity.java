@@ -2,6 +2,7 @@ package com.thesaan.beyonduniverse;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -9,12 +10,12 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.thesaan.beyonduniverse.gamecontent.UniverseMap;
-import com.thesaan.beyonduniverse.gamecontent.world.Universe;
+import com.thesaan.beyonduniverse.gamecontent.StarMapBuilder;
+import com.thesaan.beyonduniverse.gamecontent.world.World;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
+import com.thesaan.gameengine.android.database.AppDatabase;
 import com.thesaan.gameengine.android.ui.StarMapSurface;
 
-import com.thesaan.gameengine.android.database.AppDatabase;
 
 import java.io.File;
 
@@ -22,8 +23,9 @@ import java.io.File;
 public class MainActivity extends Activity implements View.OnClickListener{
 
 
-    Button loadButton, starMapButton, scaleUpButton, scaleDownButton;
-    Button backToUniverseLayerButton;
+    Button btn3D, btnCreateGalaxies;
+
+    int numberOfGalaxies;
 
     /**
      * The canvas surface to draw onto.
@@ -33,14 +35,14 @@ public class MainActivity extends Activity implements View.OnClickListener{
     /**
      * To define the waiting distance between redraw steps of the {@link #gameSurface}
      */
-    SeekBar waitBar;
+    SeekBar setAmountOfGalaxiesBar;
 
-    TextView tv, waitInfo,dbInfoText, selectedObjectInfo, starMapModeInfo;
+    TextView tv, galaxyInfo,dbInfoText, selectedObjectInfo, starMapModeInfo;
 
+    public static AppDatabase uDb;
 
     public static Context globalContext;
 
-    public static AppDatabase uDb;
 
     /**
      * To get internal storage files
@@ -50,10 +52,10 @@ public class MainActivity extends Activity implements View.OnClickListener{
     /**
      * For Building the universe objects from database
      */
-    private UniverseMap map;
+    private StarMapBuilder starMapBuilder;
 
 
-    Universe mUniverse;
+    World mUniverse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,27 +67,24 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
         internalDir = getFilesDir();
 
-        uDb = new AppDatabase(MainActivity.this);
 
-        mUniverse = new Universe(this,uDb);
+        mUniverse = new World(this);
 
-        map = new UniverseMap(uDb);
+        starMapBuilder = new StarMapBuilder(getApplicationContext());
 
-
-
-
+        starMapBuilder.createMapOfGalaxies(1);
 
         gameSurface = (StarMapSurface)findViewById(R.id.gameSurface);
         if(gameSurface == null)
             System.err.println("GameSurface init failed");
 
 
-        //all views
+        //all com.thesaan.gameengine.android.views
         initViews();
 
         if(gameSurface != null) {
             gameSurface.setActivity(this);
-            gameSurface.setStarMap(map);
+            gameSurface.setStarMap(starMapBuilder);
             if(tv != null) {
 
             }else {
@@ -94,6 +93,8 @@ public class MainActivity extends Activity implements View.OnClickListener{
         }else{
             System.err.println("GameSurface View is null");
         }
+
+        btn3D.callOnClick();
     }
 
     //===============================================================================
@@ -132,73 +133,58 @@ public class MainActivity extends Activity implements View.OnClickListener{
      */
     public void printUniverseObjectProportions(){
         System.out.println(
-                "ALLOWED\nGalaxies:"+Universe.numberOfAllowedGalaxies+"\n"+
-                        "SolarSystems: "+Universe.numberOfAllowedSolarSystems+"\n"+
-                        "Planets: "+Universe.numberOfAllowedPlanets+"\n"+
-                        "Moons: " +Universe.numberOfAllowedMoons+"\n"+
-                        "Stars: " +Universe.numberOfAllowedStars+"\n"+
-                        "Cities: "+Universe.numberOfAllowedCities+"\n"+
+                "ALLOWED\nGalaxies:"+ World.numberOfAllowedGalaxies+"\n"+
+                        "SolarSystems: "+ World.numberOfAllowedSolarSystems+"\n"+
+                        "Planets: "+ World.numberOfAllowedPlanets+"\n"+
+                        "Moons: " + World.numberOfAllowedMoons+"\n"+
+                        "Stars: " + World.numberOfAllowedStars+"\n"+
+                        "Cities: "+ World.numberOfAllowedCities+"\n"+
                         "Rest : "+
                         (
                                 UniverseObjectProperties.MAX_UNIVERSE_OBJECTS-
-                                        Universe.numberOfAllowedGalaxies-
-                                        Universe.numberOfAllowedSolarSystems-
-                                        Universe.numberOfAllowedPlanets-
-                                        Universe.numberOfAllowedMoons-
-                                        Universe.numberOfAllowedCities
+                                        World.numberOfAllowedGalaxies-
+                                        World.numberOfAllowedSolarSystems-
+                                        World.numberOfAllowedPlanets-
+                                        World.numberOfAllowedMoons-
+                                        World.numberOfAllowedCities
                         )+"\n"+
-                        "There are enough Planets created that each Solarsystem could have "+ Universe.averageAmountOfPlanetsInSolarSystem+" Planets\n"+
-                        "Av. each "+Universe.averageAmountOfMoonsAroundPlanet+". Planet has a moon"
+                        "There are enough Planets created that each Solarsystem could have "+ World.averageAmountOfPlanetsInSolarSystem+" Planets\n"+
+                        "Av. each "+ World.averageAmountOfMoonsAroundPlanet+". Planet has a moon"
         );
     }
 
     /**
-     * Setup all views
+     * Setup all com.thesaan.gameengine.android.views
      */
     private void initViews() {
 
 //        loadButton = (Button)findViewById(R.id.loadButton);
 //        loadButton.setOnClickListener(this);
 
-        backToUniverseLayerButton = (Button)findViewById(R.id.backToUniverse);
-        backToUniverseLayerButton.setText("Universe Mode");
         selectedObjectInfo = (TextView)findViewById(R.id.selectedObjectInfo);
         selectedObjectInfo.setText("Kein Objekt ausgewählt");
 
         starMapModeInfo = (TextView)findViewById(R.id.starMapModeInfo);
         starMapModeInfo.setText(gameSurface.getStarmapModeDescription());
 
-        starMapButton = (Button)findViewById(R.id.StarmapButton);
-        starMapButton.setOnClickListener(this);
-
         dbInfoText = (TextView)findViewById(R.id.dbInfoText);
-        dbInfoText.setText(
-                "\tGalaxien: "+uDb.getGalaxies().getCount()+"\n"+
-                "\tSternensysteme: "+uDb.getSolarSystems().getCount()+"\n"+
-                "\tSterne: "+uDb.getStars().getCount()+"\n"+
-                "\tPlaneten: "+uDb.getPlanets().getCount()+"\n"+
-                "\tMonde: "+uDb.getMoons().getCount()+"\n"+
-                "\tStädte: "+uDb.getCities().getCount()+"\n"
 
-        );
+        setAmountOfGalaxiesBar = (SeekBar)findViewById(R.id.galaxyBar);
+        galaxyInfo = (TextView)findViewById(R.id.waitInfo);
 
-        scaleDownButton = (Button) findViewById(R.id.scaleDownButton);
-        scaleUpButton = (Button) findViewById(R.id.scaleUpButton);
+        btn3D = (Button)findViewById(R.id.btn3D);
+        btn3D.setOnClickListener(this);
 
-        scaleDownButton.setOnClickListener(this);
-        scaleUpButton.setOnClickListener(this);
+        btnCreateGalaxies = (Button)findViewById(R.id.createGalaxies);
+        btnCreateGalaxies.setOnClickListener(this);
 
+        setAmountOfGalaxiesBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progress = 0;
 
-        waitBar = (SeekBar)findViewById(R.id.waitBar);
-        waitInfo = (TextView)findViewById(R.id.waitInfo);
-
-        gameSurface.setWaitValue(50);
-        waitBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            int progress =  0;
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 this.progress = progress;
-                waitInfo.setText("Wait "+progress+" milliseconds between drawing steps.");
+                galaxyInfo.setText("Create " + progress + " Galaxies when clicking the button below.");
             }
 
             @Override
@@ -208,48 +194,44 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                gameSurface.setWaitValue(progress);
+                setAmountOfGalaxies(progress);
             }
         });
 
     }
 
-
+    public void setAmountOfGalaxies(int val) {
+        numberOfGalaxies = val;
+    }
     @Override
     public void onClick(View v) {
         switch (v.getId()){
 
-            case R.id.scaleUpButton:{
-                try {
-                    gameSurface.scaleUp(0.5f);
-                }catch (InterruptedException e){
-
-                }
-                break;
-            }
-            case R.id.scaleDownButton:{
-                try {
-                    if(gameSurface.getmScaleFactor()-0.5f >= 0)
-                        gameSurface.scaleDown(0.5f);
-                }catch (InterruptedException e){
-
-            }
-                break;
-            }
             case R.id.loadButton:{
 //                mUniverse = new Universe(this,uDb);
                 Toast.makeText(MainActivity.this, "Load", Toast.LENGTH_SHORT).show();
                 break;
             }
-            case R.id.StarmapButton:{
-//                gameSurface.showStarMap(map.getMapBuilder());
+            case R.id.btn3D:{
+                gameSurface = null;
 
-                Toast.makeText(MainActivity.this, "Open Starmap with " + uDb.getNumberOfGalaxies() + " Galaxies...", Toast.LENGTH_SHORT).show();
+                Intent i = new Intent(MainActivity.this, OpenGLESActivity.class);
+                startActivity(i);
+
                 break;
             }
-            case R.id.backToUniverse:{
-                gameSurface.goToUniverseMode();
+            case R.id.createGalaxies:{
+
+                StarMapBuilder builder = gameSurface.getStarmapBuilder();
+
+                builder.setGalaxies(null);
+                builder.createMapOfGalaxies(numberOfGalaxies);
+
+                gameSurface.setStarMap(builder);
+
+                break;
             }
+
         }
     }
 

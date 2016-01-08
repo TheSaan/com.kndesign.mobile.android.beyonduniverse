@@ -2,7 +2,6 @@ package com.thesaan.gameengine.android.ui;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -20,18 +19,17 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
+import android.view.VelocityTracker;
 import android.widget.Toast;
 
 import com.thesaan.beyonduniverse.MainActivity;
-import com.thesaan.beyonduniverse.R;
 import com.thesaan.beyonduniverse.gamecontent.*;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Galaxy;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Planet;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.SolarSystem;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Star;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.UniverseObject;
-import com.thesaan.beyonduniverse.gamecontent.world.Universe;
+import com.thesaan.beyonduniverse.gamecontent.world.World;
 import com.thesaan.gameengine.android.DB_Settings;
 import com.thesaan.gameengine.android.Settings;
 import com.thesaan.gameengine.android.database.AppDatabase;
@@ -61,17 +59,17 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
     /**
      * Equals the mathematical Y-Axis.
      */
-    public final static int PAN_MODE = TranslationMatrix.Z_AXIS;
+    public final static int PAN_MODE = Matrix.Z_AXIS;
     /**
      * Equals the mathematical X-Axis. Because in the two dimensional
      * surface only x & Y exists and z (depth) is a simulated value.
      */
-    public final static int ROLL_MODE = TranslationMatrix.Y_AXIS;
+    public final static int ROLL_MODE = Matrix.Y_AXIS;
     /**
      * Equals the mathematical Z-Axis. So the calculated X-Axis is
      * the depth of the two dimensional surface.
      */
-    public final static int TILT_MODE = TranslationMatrix.X_AXIS;
+    public final static int TILT_MODE = Matrix.X_AXIS;
 
     /**
      * Identifier for the movement action UP
@@ -94,7 +92,7 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
      * Defines a break between every canvas redraw frame. This is
      * only used for testing purposes.
      */
-    long waitValue = 50;
+    long numberOfGalaxies = 10;
 
     /**
      * The maximum distance for selection when touching close to an object
@@ -229,6 +227,8 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
 
     private ScaleGestureDetector scaleGestureDetector;
 
+    private VelocityTracker velocityTracker = null;
+
     protected SurfaceHolder holder;
     private Bitmap bitmap;
     public Canvas canvas;
@@ -277,9 +277,7 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     /*----------------------------------------TESTERS-----------------------------------*/
-    public void setWaitValue(long val) {
-        waitValue = val;
-    }
+
     /*----------------------------------------EVENTS-----------------------------------*/
 
 
@@ -288,7 +286,7 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
 
         int action = MotionEventCompat.getActionMasked(event);
         int index = MotionEventCompat.getActionIndex(event);
-
+        int pointerId = event.getPointerId(index);
 
         scaleGestureDetector.onTouchEvent(event);
         mGestureDetector.onTouchEvent(event);
@@ -298,7 +296,19 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
 
         switch (action) {
 
-            case MotionEvent.ACTION_DOWN: {
+            case MotionEvent.ACTION_MOVE: {
+
+
+                if (velocityTracker == null) {
+                    //retrieve new object to watch
+                    velocityTracker = VelocityTracker.obtain();
+                    System.out.println("Obtain");
+                } else {
+                    //reset tracker
+                    velocityTracker.clear();
+                    System.out.println("Clear");
+                }
+
                 setCubeAnkerPivot(event.getX(), event.getY());
                 setTouchedPivot(MotionEventCompat.getX(event, index), MotionEventCompat.getY(event, index));
                 int mode = 0;
@@ -347,7 +357,71 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
 
                     onRotateMap(mode, direction);
                 }
-                return false;
+//                    return false;
+
+            }
+            case MotionEvent.ACTION_DOWN: {
+
+                if (velocityTracker == null) {
+                    //retrieve new object to watch
+                    velocityTracker = VelocityTracker.obtain();
+                    System.out.println("Obtain");
+                } else {
+                    //reset tracker
+                    velocityTracker.clear();
+                    System.out.println("Clear");
+                }
+
+                setCubeAnkerPivot(event.getX(), event.getY());
+                setTouchedPivot(MotionEventCompat.getX(event, index), MotionEventCompat.getY(event, index));
+                int mode = 0;
+                int direction = 0;
+
+                boolean isObjectSelected = false;
+
+                //check wether the touch position is equal to an current object or not
+                UniverseObject[][] obj = getObjectsByStarMapMode();
+                if (obj != null) {
+                    for (int i = 0; i < obj.length && obj[i] != null; i++) {
+                        for (int k = 0; k < obj[i].length && obj[i][k] != null; k++) {
+                            isObjectSelected = isTouchPositionOnObject(obj[i][k]);
+                            if (isObjectSelected) {
+                                Toast.makeText(getContext(), obj[i][k].getName() + " was selected", Toast.LENGTH_SHORT).show();
+                                surfaceHandler.post(new GameThread(GameThread.ACTION_TOUCH_OBJECT));
+                            }
+                        }
+                    }
+                } else {
+                    System.err.println("UniverseObject[][] container is null");
+                }
+
+                if (!isObjectSelected) {
+                    if (touchedX < centerX && (touchedY < centerY + 100 && touchedY > centerY - 100)) {
+
+                        mode = PAN_MODE;
+                        direction = DIRECTION_LEFT;
+                    } else if (touchedX > centerX && (touchedY < centerY + 100 && touchedY > centerY - 100)) {
+
+                        mode = PAN_MODE;
+                        direction = DIRECTION_RIGHT;
+                    } else if (touchedY < centerY && (touchedX < centerX + 100 && touchedX > centerX - 100)) {
+                        mode = TILT_MODE;
+                        direction = DIRECTION_UP;
+                    } else if (touchedY > centerY && (touchedX < centerX + 100 && touchedX > centerX - 100)) {
+                        mode = TILT_MODE;
+                        direction = DIRECTION_DOWN;
+                    } else if (touchedX > (centerX + (centerX / 2)) && touchedY < (centerY - (centerY / 2))) {
+                        mode = ROLL_MODE;
+                        direction = DIRECTION_RIGHT;
+                    } else if (touchedX < (centerX - (centerX / 2)) && touchedY < (centerY - (centerY / 2))) {
+                        mode = ROLL_MODE;
+                        direction = DIRECTION_LEFT;
+                    }
+
+                    onRotateMap(mode, direction);
+                }
+//                    return false;
+
             }
             case MotionEvent.ACTION_POINTER_DOWN: {
 
@@ -357,23 +431,40 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
                 return true;
             }
             case MotionEvent.ACTION_POINTER_UP:
-            case MotionEvent.ACTION_UP: {
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:{
+                // Return a VelocityTracker object back to be re-used by others.
+                velocityTracker.recycle();
 //                isClearable = false;
                 inScaleMode = false;
 
                 System.out.println("UP");
                 return false;
             }
-            case MotionEvent.ACTION_MOVE: {
-                if (inScaleMode) {
-                    scaleGestureDetector.onTouchEvent(event);
-
-                    System.out.println("MOVE");
-                    onZoom();
-                }
-            }
+//            case MotionEvent.ACTION_MOVE: {
+//                if (inScaleMode) {
+//                    scaleGestureDetector.onTouchEvent(event);
+//                }
+//
+//                //VelocityTracker
+//                velocityTracker.addMovement(event);
+//
+//                velocityTracker.computeCurrentVelocity(1000);
+//                // Log velocity of pixels per second
+//                // Best practice to use VelocityTrackerCompat where possible.
+//                System.out.println("X velocity: " +
+//                        VelocityTrackerCompat.getXVelocity(velocityTracker,
+//                                pointerId));
+//                System.out.println("Y velocity: " +
+//                            VelocityTrackerCompat.getYVelocity(velocityTracker,
+//                                    pointerId));
+//
+//                System.out.println("MOVE");
+//                onZoom();
+//                return false;
+//            }
         }
-        return false;
+        return true;
     }
 
 
@@ -504,6 +595,9 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
+    public StarMapBuilder getStarmapBuilder(){
+        return builder;
+    }
     /**
      * Gets the current map view mode {@link #starMapMode}
      *
@@ -542,8 +636,8 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
      *
      * @param map
      */
-    public void setStarMap(UniverseMap map) {
-        builder = map.getMapBuilder();
+    public void setStarMap(StarMapBuilder map) {
+        builder = map;
     }
 
     /**
@@ -704,20 +798,20 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
                 //2 finger
                 case PAN_MODE: {
                     for (int i = 0; i < STEPS; i++) {
-                        rotate(moveStep, PAN_MODE, direction, TranslationMatrix.Z_AXIS);
+                        rotate(moveStep, PAN_MODE, direction, Matrix.Z_AXIS);
                     }
                     return true;
                 }
                 case ROLL_MODE: {
                     for (int i = 0; i < STEPS; i++) {
-                        rotate(moveStep, ROLL_MODE, direction, TranslationMatrix.Y_AXIS);
+                        rotate(moveStep, ROLL_MODE, direction, Matrix.Y_AXIS);
                     }
                     return true;
                 }
                 //3 fingers
                 case TILT_MODE: {
                     for (int i = 0; i < STEPS; i++) {
-                        rotate(moveStep, TILT_MODE, direction, TranslationMatrix.X_AXIS);
+                        rotate(moveStep, TILT_MODE, direction, Matrix.X_AXIS);
                     }
 
                     return true;
@@ -871,7 +965,7 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
                 moveStep = 0.1f;
                 int push = (int) (25 * (-velocityX / 1000));
                 for (int i = 0; i < push; i++) {
-                    rotate(moveStep, PAN_MODE, DIRECTION_LEFT, TranslationMatrix.Y_AXIS);
+                    rotate(moveStep, PAN_MODE, DIRECTION_LEFT, Matrix.Y_AXIS);
                     if (i > push * 0.3)
                         moveStep -= (moveStep / i);
 
@@ -887,7 +981,7 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
                 System.out.println("Velocity: " + velocityX);
                 moveStep = 0.05f;
                 for (int i = 0; i < SWIPE_MIN_DISTANCE; i++) {
-                    rotate(moveStep, PAN_MODE, DIRECTION_RIGHT, TranslationMatrix.Y_AXIS);
+                    rotate(moveStep, PAN_MODE, DIRECTION_RIGHT, Matrix.Y_AXIS);
 
                     moveStep -= (moveStep / i);
 
@@ -1149,10 +1243,10 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
             y = g.getY();
             z = g.getZ();
 
-            View info = findViewById(R.id.objectInfoView);
+//            View info = findViewById(R.id.objectInfoView);
 
-            info.setLeft((int) x);
-            info.setBottom((int) y);
+//            info.setLeft((int) x);
+//            info.setBottom((int) y);
 //            info.setLayoutParams(Action);
 
 
@@ -1515,10 +1609,10 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
                                 }
                                 //y parallel
                                 paint.setColor(Color.WHITE);
-                                getCoordinateSystem3D().onRotate(90, DIRECTION_RIGHT, TranslationMatrix.Z_AXIS);
+                                getCoordinateSystem3D().onRotate(90, DIRECTION_RIGHT, Matrix.Z_AXIS);
                                 data = getCoordinateSystem3D().getCoordinateDataAsFloat2D();
                                 myCanvas.drawLine(data[0] + k, data[1], data[2] + k, data[3], paint);
-                                getCoordinateSystem3D().onRotate(90, DIRECTION_LEFT, TranslationMatrix.Z_AXIS);
+                                getCoordinateSystem3D().onRotate(90, DIRECTION_LEFT, Matrix.Z_AXIS);
                                 data = getCoordinateSystem3D().getCoordinateDataAsFloat2D();
 
 
@@ -1600,9 +1694,9 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
                 xS = new CoordinateSystem3D.CoordinateAxis.Coordinate(left, centerY / 2 + centerY);
                 xE = new CoordinateSystem3D.CoordinateAxis.Coordinate(right, centerY / 2);
                 //X-Y-Z Axises
-                x = new CoordinateSystem3D.CoordinateAxis(xS, xE, surfaceEdges, getMe(), TranslationMatrix.X_AXIS);
-                y = new CoordinateSystem3D.CoordinateAxis(yS, yE, surfaceEdges, getMe(), TranslationMatrix.Y_AXIS);
-                z = new CoordinateSystem3D.CoordinateAxis(zS, zE, surfaceEdges, getMe(), TranslationMatrix.Z_AXIS);
+                x = new CoordinateSystem3D.CoordinateAxis(xS, xE, surfaceEdges, getMe(), Matrix.X_AXIS);
+                y = new CoordinateSystem3D.CoordinateAxis(yS, yE, surfaceEdges, getMe(), Matrix.Y_AXIS);
+                z = new CoordinateSystem3D.CoordinateAxis(zS, zE, surfaceEdges, getMe(), Matrix.Z_AXIS);
 
                 p = new Paint();
                 //return the axises
@@ -1765,9 +1859,10 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
 
             int counter = 0;
             for (UniverseObject object : objects) {
+                //when the loop object is the same as object "o" from arguments -> jump
                 if (object.getName() == o.getName()) continue;
 
-                if (object.getZ() < o.getZ()) {
+                if (object.getZ() > o.getZ()) {
                     counter++;
                 }
             }
@@ -1884,10 +1979,11 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
                         //
                         drawConnectionLineToClosestObject(galaxy, galaxies, x, y);
 
-                        //volume devider of current galaxy
+//                        volume devider of current galaxy
 //                        float dim = galaxy.getVolume()/3;
 //                        Cube room = new Cube(dim,dim,dim, Color.BLUE,new Vector(galaxy.getX(),galaxy.getY(),galaxy.getZ()));
 //                        room.draw(myCanvas,Cube.WIREFRAME);
+
                         myCanvas.drawPoint(x, y, setPaintByMapMode(mapmode));
 
                         float depth = 0f;
@@ -1903,8 +1999,8 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
                         vol = (galaxy.getVolume() / 3f);
                         dim = vol + z / 10;
 
-                        Cube cube = new Cube(dim, dim / 3f, depth, Color.BLUE, new Vector(x - vol / 2, y + vol / 2, z - vol / 4));
-                        cube.draw(myCanvas, Cube.WIREFRAME);
+//                        Cube cube = new Cube(dim, dim / 3f, depth, Color.BLUE, new Vector(x - vol / 2, y + vol / 2, z - vol / 4));
+//                        cube.draw(myCanvas, Cube.WIREFRAME);
                     }
                     break;
                 }
@@ -2025,7 +2121,7 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
         }
 
         /**
-         * If the current object is one of the closest to the camera the {@link com.thesaan.gameengine.android.ui.StarMapSurface#numberOfObjectsToPrintData}  variable
+         * If the current object is one of the closest to the camera the {@link com.thesaan.gameengine.android.ui.StarMapSurface Settings#numberOfObjectsToPrintData}  variable
          * defines how many), a small description of this object gets shown in the format
          * <p>e.g. for a solar system</p>
          * <p>SS.JDKJEI.198784</p>
@@ -2211,9 +2307,9 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
 
             p.setAlpha(60);
             myCanvas.drawText("SF: " + mScaleFactor, left + 80, bottom - 100, p);
-            myCanvas.drawText("X: " + (Universe.UNIVERSE_X * mScaleFactor), left + 80, bottom - 80, p);
-            myCanvas.drawText("Y: " + (Universe.UNIVERSE_X * mScaleFactor), left + 80, bottom - 60, p);
-            myCanvas.drawText("Z: " + (Universe.UNIVERSE_X * mScaleFactor), left + 80, bottom - 40, p);
+            myCanvas.drawText("X: " + (World.UNIVERSE_X * mScaleFactor), left + 80, bottom - 80, p);
+            myCanvas.drawText("Y: " + (World.UNIVERSE_X * mScaleFactor), left + 80, bottom - 60, p);
+            myCanvas.drawText("Z: " + (World.UNIVERSE_X * mScaleFactor), left + 80, bottom - 40, p);
 
             return myCanvas;
         }
@@ -2256,13 +2352,13 @@ public class StarMapSurface extends SurfaceView implements SurfaceHolder.Callbac
         }
 
         private void loadPlanetBitmaps(BitmapFactory.Options options) {
-            TypedArray planets = getResources().obtainTypedArray(R.array.planet_bitmaps);
-
-            planetBitmaps = new Bitmap[planets.getIndexCount()];
-            for (int i = 0; i < planetBitmaps.length; i++) {
-                Bitmap bm = BitmapFactory.decodeResource(getResources(), planets.getResourceId(i, -1), options);
-                planetBitmaps[i] = bm;
-            }
+//            TypedArray planets = getResources().obtainTypedArray(R.array.planet_bitmaps);
+//
+//            planetBitmaps = new Bitmap[planets.getIndexCount()];
+//            for (int i = 0; i < planetBitmaps.length; i++) {
+//                Bitmap bm = BitmapFactory.decodeResource(getResources(), planets.getResourceId(i, -1), options);
+//                planetBitmaps[i] = bm;
+//            }
         }
 
     }

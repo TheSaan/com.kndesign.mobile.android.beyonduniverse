@@ -1,6 +1,7 @@
 package com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects;
 
 import com.thesaan.gameengine.android.handler.MathHandler;
+import com.thesaan.gameengine.android.opengl.shapes.Vertex;
 
 /**
  * Created by mknoe on 29.04.2015.
@@ -8,31 +9,33 @@ import com.thesaan.gameengine.android.handler.MathHandler;
 public interface ObjectProperties {
 
     //an random choosen value to multiply the degrees of the star
-    public final static float ENERGY_MULTIPLIER = 5.56f;
-    public void onRotate(float angle, int mode, int direction, int axis);
-    public void onMove(float x, float y, float z);
-    public void onZoom(float factor);
-    public float getX();
-    public float getY();
-    public float getZ();
-    public float getScope();
-    public float getDegrees();
-    public float getRadius();
-    public float getMass();
-    public float getVolume();
-    public MathHandler.Vector getPosition();
-    public String getName();
-    public long getPopulation();
-    public int getType();
-    public SolarSystem[] getSolarsystems();
-    public Planet[] getPlanets();
-    public Moon[] getMoons();
-    public Star[] getStars();
-    public City[] getCities();
+    float ENERGY_MULTIPLIER = 5.56f;
+    void onRotate(float angle, int xAxis, int yAxis, int zAxis);
+    void onMove(float x, float y, float z);
+    void onZoom(float factor);
+    float getX();
+    float getY();
+    float getZ();
+    float getScope();
+    float getDegrees();
+    float getRadius();
+    float getMass();
+    float getVolume();
+    MathHandler.Vector getPosition();
+    String getName();
+    long getPopulation();
+    int getType();
+    SolarSystem[] getSolarsystems();
+    Planet[] getPlanets();
+    Moon[] getMoons();
+    Star[] getStars();
+    City[] getCities();
+    Vertex getVertex();
 
-    public void setX(float x);
-    public void setY(float y);
-    public void setZ(float z);
+    void setX(float x);
+    void setY(float y);
+    void setZ(float z);
+    void setVertexPosition();
 
 
 }

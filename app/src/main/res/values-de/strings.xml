@@ -2,4 +2,34 @@
 <resources>
     <string name="buttonNewGameText">Neues Spiel</string>
     <string name="buttonOptionsText">Options</string>
+    <!-- Start Activity-->
+    <string name="StartActivitystart.button.startgame">Neues Spiel</string>
+    <string name="StartActivitystart.button.loadgame">Spiel laden</string>
+    <string name="StartActivitystart.button.options">Optionen</string>
+    <string name="StartActivitystart.button.developer_options">Entwickleroptionen</string>
+    <string name="StartActivitystart.button.credits">Credits</string>
+    <string name="StartActivitystart.button.exit">Spiel beenden</string>
+    <!-- Developers Activity-->
+    <!-- Creator data-->
+    <string name="DeveloperActivity.creator_title">Welt bearbeiten</string>
+
+    <string name="DeveloperActivity.creator_text_create_world_1_3">Erstelle Welt mit </string>
+    <string name="DeveloperActivity.creator_text_create_world_2_3"> Galaxien mit je </string>
+    <string name="DeveloperActivity.creator_text_create_world_3_3"> Sternensystemen</string>
+    <!-- -->
+    <string name="DeveloperActivity.creator_text_remove_data_1_1">Lösche Objektdaten </string>
+    <string name="DeveloperActivity.creator_text_remove_data_1_1.checkbox">Ich stimme zu</string>
+    <string name="DeveloperActivity.creator_text_remove_data_1_1.button">Löschen</string>
+    <!-- Statistics-->
+    <string name="DeveloperActivity.statistics_title">Statistiken</string>
+
+    <string name="DeveloperActivity.statistics_text.galaxies">Galaxien:</string>
+    <string name="DeveloperActivity.statistics_text.solarsystems">Sternensysteme:</string>
+    <string name="DeveloperActivity.statistics_text.stars">Sterne:</string>
+    <string name="DeveloperActivity.statistics_text.planets">Planeten:</string>
+    <string name="DeveloperActivity.statistics_text.planets.habitable">Habitable Planeten:</string>
+    <string name="DeveloperActivity.statistics_text.planets.habitable.percentage">Habitable Planeten in %:</string>
+    <string name="DeveloperActivity.statistics_text.moons">Monde:</string>
+    <string name="DeveloperActivity.statistics_text.cities">Städte:</string>
+    <string name="DeveloperActivity.statistics_text.cities.avg_per_planet">Durchn. Städte pro hab. Planeten:</string>
 </resources>

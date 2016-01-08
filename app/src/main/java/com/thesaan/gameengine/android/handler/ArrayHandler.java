@@ -1,4 +1,4 @@
-package com.thesaan.gameengine.android.handler;
+package com.thesaan.simpledroid.handler;
 
 /**
  * Created by mknoe on 14.04.2015.

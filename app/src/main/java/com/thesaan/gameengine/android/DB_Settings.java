@@ -14,11 +14,22 @@ public interface DB_Settings {
      * FOLDERS
      */
 
-//    String HOST = "192.168.1.2";
-    String HOST = "85.214.213.58"; //strato webserver
-//    String HOST = "10.0.2.2";
-//    String HOST = "127.0.0.1";
+    String FOLDER_BEYOND_UNIVERSE = "/beyond-universe/";
 
+    /**
+     * File names
+     */
+    String FILENAME_INDEX ="index.php";
+    String FILENAME_INSERT_RECORD ="insert_object.php";
+
+    String STD_LOCALHOST = "192.168.1.2";
+    String STRATO_HOST = "85.214.213.58";
+    String LOCALHOST_EMULATED_ANDROID_DEVICE = "10.0.2.2";
+    String LOCALHOST = "127.0.0.1";
+
+    String HTTP = "http://";
+    String HTTPS = "https://";
+    String FTP = "ftp://";
 
     //IMAGE PREFIX
     String IMAGE_SPLIT_POINT = "IMG_";
@@ -27,6 +38,7 @@ public interface DB_Settings {
     //TEXT TEXTS
     String LOREM_IPSUM = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
     String TEST_DETAILS = "Ich programmiere diese Applikation";
+
 
 
     //INTENTS

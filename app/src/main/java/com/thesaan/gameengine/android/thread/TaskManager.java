@@ -86,6 +86,10 @@ public class TaskManager extends ThreadPoolExecutor {
         surfaceDrawingTask = runnable;
     }
 
+    public Handler getHandler(){
+        return surfaceHandler;
+    }
+
     private Runnable getSurfaceDrawRunnable(){
         return surfaceDrawingTask;
     }

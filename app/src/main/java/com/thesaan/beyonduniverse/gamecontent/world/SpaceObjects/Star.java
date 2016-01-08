@@ -27,8 +27,8 @@ public class Star extends UniverseObject {
     String gifStarYellow = "Yellow";
 
     private String gifFileName;
-    public Star(String name, MathHandler.Vector position, float mass, float degrees, int type){
-        super(name,position,mass,degrees,type);
+    public Star(String name, MathHandler.Vector position, float mass, float degrees, int type,int seed){
+        super(name,position,mass,degrees,type,seed);
 
         mEnergy = degrees*ENERGY_MULTIPLIER;
 

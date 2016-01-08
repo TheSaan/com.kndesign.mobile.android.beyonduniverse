@@ -1,5 +1,4 @@
 package com.thesaan.gameengine.android.handler;
-
 import java.util.Calendar;
 import java.util.Random;
 

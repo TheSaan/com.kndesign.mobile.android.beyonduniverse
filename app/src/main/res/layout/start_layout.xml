@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000008">
+
+    <ImageView
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:id="@+id/imageView"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="50dp"
+        android:background="@mipmap/logo"
+        android:layout_centerVertical="true" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical|center_horizontal">
+
+        <Button
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:text="@string/StartActivitystart.button.startgame"
+            android:id="@+id/B_new_game"
+            android:layout_alignBottom="@+id/imageView"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:text="@string/StartActivitystart.button.loadgame"
+            android:id="@+id/B_load_game"
+            android:layout_below="@+id/imageView"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:text="@string/StartActivitystart.button.options"
+            android:id="@+id/B_options"
+            android:layout_below="@+id/B_load_game"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:text="@string/StartActivitystart.button.credits"
+            android:id="@+id/B_credits"
+            android:layout_below="@+id/B_options"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:text="@string/StartActivitystart.button.exit"
+            android:id="@+id/B_exit"
+            android:layout_below="@+id/B_credits"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:text="@string/StartActivitystart.button.developer_options"
+            android:id="@+id/B_dev_options"
+            android:layout_below="@+id/B_exit"
+            android:layout_centerHorizontal="true"
+            android:background="#f2ffaf" />
+    </LinearLayout>
+
+</RelativeLayout>

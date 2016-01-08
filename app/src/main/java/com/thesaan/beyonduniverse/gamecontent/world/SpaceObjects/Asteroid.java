@@ -8,10 +8,10 @@ import com.thesaan.gameengine.android.handler.MathHandler;
 public class Asteroid extends UniverseObject {
 
 
-    public Asteroid(String name, MathHandler.Vector position, float mass,  float degrees, int type){
-        super(name, position,mass,degrees,type);
+    public Asteroid(String name, MathHandler.Vector position, float mass,  float degrees, int type,int seed){
+        super(name, position,mass,degrees,type,seed);
 
         this.type = type;
-        setRandomRadius();
+        setRandomRadius(random);
     }
 }

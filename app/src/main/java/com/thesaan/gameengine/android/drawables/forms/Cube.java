@@ -201,7 +201,7 @@ public class Cube implements Form{
     }
 
     @Override
-    public void onRotate(Canvas canvas,float angle, int mode, int direction, int axis) {
+    public void onRotate(Canvas canvas,float angle, int direction,  int xAxis, int yAxis, int zAxis) {
 
         int directionSelector;
 
@@ -222,7 +222,7 @@ public class Cube implements Form{
         }
 
         for(int i = 0;i < points.length; i++) {
-            MathHandler.getTranslationMatrix().rotateVector3D(points[i], angle, axis);
+            points[i].rotate3D(angle, xAxis, yAxis, zAxis, null, null);
         }
     }
 

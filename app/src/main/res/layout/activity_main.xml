@@ -37,44 +37,34 @@
             android:layout_height="wrap_content" />
 
         <SeekBar
-            android:id="@+id/waitBar"
+            android:id="@+id/galaxyBar"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:indeterminate="false"
             android:max="2000"
             android:progress="10" />
+        <Button
+            android:id="@+id/createGalaxies"
+            android:layout_width="261dp"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/tiltLeft"
+            android:layout_centerHorizontal="true"
+            android:text="Create Galaxies" />
+        <Button
+            android:id="@+id/btn3D"
+            android:layout_width="261dp"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/tiltLeft"
+            android:layout_centerHorizontal="true"
+            android:text="To 3D" />
+
+
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="214dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/StarmapButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_above="@+id/tiltLeft"
-                android:layout_centerHorizontal="true"
-                android:text="Starmap" />
-
-            <Button
-                android:id="@+id/scaleUpButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Scale Up"
-                android:textAlignment="center" />
-
-            <Button
-                android:id="@+id/scaleDownButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Scale Down"
-                android:textAlignment="center" />
-            <Button
-                android:id="@+id/backToUniverse"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAlignment="center" />
         </LinearLayout>
 
         <TextView

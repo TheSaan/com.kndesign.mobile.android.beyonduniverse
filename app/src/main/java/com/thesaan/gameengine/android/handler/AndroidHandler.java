@@ -20,6 +20,7 @@ public class AndroidHandler {
 
     Context context;
 
+
     final String BIG_MARK_LINE =
             "---------------------------------------------------------\n" +
                     "---------------------------------------------------------";

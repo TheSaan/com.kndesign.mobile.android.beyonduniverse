@@ -1,5 +1,6 @@
 package com.thesaan.beyonduniverse.gamecontent;
 
+import android.content.Context;
 import android.database.Cursor;
 
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Galaxy;
@@ -8,10 +9,7 @@ import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Planet;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.SolarSystem;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Star;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.UniverseObject;
-import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
-import com.thesaan.gameengine.android.DB_Settings;
-import com.thesaan.gameengine.android.database.AppDatabase;
-import com.thesaan.gameengine.android.handler.MathHandler;
+import com.thesaan.beyonduniverse.gamecontent.world.World;
 
 /**
  * Created by mknoe on 04.05.2015.
@@ -19,48 +17,26 @@ import com.thesaan.gameengine.android.handler.MathHandler;
 public class StarMapBuilder {
 
     Galaxy[] galaxies;
-    SolarSystem[] solarSystems;
-    Star[] stars;
-    Planet[] planets;
-    Moon[] moons;
+    Context context;
 
-    AppDatabase db;
-
-    public StarMapBuilder(AppDatabase db){
-        this.db = db;
-        createMapOfGalaxies();
+    public StarMapBuilder(Context context){
+        this.context = context;
     }
 
     /**
      * Creates galaxy objects from database and makes it global with {@link #getGalaxies()}
      */
-    public void createMapOfGalaxies(){
+    public void createMapOfGalaxies(int amount){
 
-        galaxies = new Galaxy[db.getNumberOfGalaxies()];
-//        System.err.println("Number of galaxies "+db.getNumberOfGalaxies());
-        Cursor c;
-        for(int i = 0; i< db.getNumberOfGalaxies();i++){
+        World w = new World(context);
 
-            c = db.getGalaxy(i+1);
-            c.moveToFirst();
-            MathHandler.Vector pos = new MathHandler.Vector(c.getFloat(c.getColumnIndex(DB_Settings.COL_POS_X)),c.getFloat(c.getColumnIndex(DB_Settings.COL_POS_Y)),c.getFloat(c.getColumnIndex(DB_Settings.COL_POS_Z)));
-            Galaxy galaxy = new Galaxy(c.getString(c.getColumnIndex(DB_Settings.COL_NAME)),c.getFloat(c.getColumnIndex(DB_Settings.COL_VOLUME)), UniverseObjectProperties.OBJECT_GALAXY);
+        //create Galaxies
+        w.openGalaxies(amount);
 
-            galaxy.setMyPosition(pos);
-            galaxy.setSolarSystems(db.getSolarSystemsOfGalaxy(c.getString(c.getColumnIndex(DB_Settings.COL_NAME))));
+        this.galaxies = w.galaxies;
 
-//            if(galaxy != null) {
-//                int adder = 0;
-//                float x =  galaxy.getX() + adder;
-//                float y =  galaxy.getY() + adder;
-//                float z =  galaxy.getZ() + adder;
-//                System.out.println("Show " + galaxy.getName() + "@ X:" + x + " Y:" + y + "Z:" + z);
 
-                galaxies[i] = galaxy;
-            c.close();
-            }
-
-        }
+    }
 
 
 
@@ -88,6 +64,10 @@ public class StarMapBuilder {
     public SolarSystem[] getSolarSystems(Galaxy parent){
 
         return null;
+    }
+
+    public void setGalaxies(Galaxy[] galaxies){
+        this.galaxies = galaxies;
     }
 
     public Galaxy[] getGalaxies() {

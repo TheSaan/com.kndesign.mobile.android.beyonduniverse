@@ -42,9 +42,9 @@ public class CoordinateSystem3D {
      */
     public void onRotate(float distance,int direction,int axis){
         setToScreenOrigin();
-        xAxis.onRotate(distance, direction, axis);
-        yAxis.onRotate(distance, direction, axis);
-        zAxis.onRotate(distance, direction, axis);
+//        xAxis.onRotate(distance, direction, axis);
+//        yAxis.onRotate(distance, direction, axis);
+//        zAxis.onRotate(distance, direction, axis);
         setOriginToCenter();
     }
 
@@ -242,21 +242,21 @@ public class CoordinateSystem3D {
 
         private float checkYAxisValue(int axis) {
             switch (axis){
-                case MathHandler.TranslationMatrix.X_AXIS:
+                case MathHandler.Matrix.X_AXIS:
                     setAxisName(axisNames[0]);
                     myType = axis;
                     xPaint = new Paint();
                     xPaint.setColor(Color.RED);
                     setPaint(xPaint);
                     return (myEndX/4);
-                case MathHandler.TranslationMatrix.Y_AXIS:
+                case MathHandler.Matrix.Y_AXIS:
                     setAxisName(axisNames[1]);
                     myType = axis;
                     yPaint = new Paint();
                     yPaint.setColor(Color.GREEN);
                     setPaint(yPaint);
                     return 0;
-                case MathHandler.TranslationMatrix.Z_AXIS:
+                case MathHandler.Matrix.Z_AXIS:
                     setAxisName(axisNames[2]);
                     myType = axis;
                     zPaint = new Paint();
@@ -313,8 +313,8 @@ public class CoordinateSystem3D {
         }
 
         /*----------------------------------------HANDLERS-----------------------------------*/
-        private void rotate(float angle, int axis, MathHandler.Vector vector){
-            MathHandler.getTranslationMatrix().rotateVector3D(vector,angle,axis);
+        private void rotate(float angle, int xAxis, int yAxis, int zAxis, MathHandler.Vector vector){
+            vector.rotate3D(angle,xAxis,yAxis,zAxis,null,null);
         }
         public static int getDirection(int direction){
             switch (direction){
@@ -330,12 +330,12 @@ public class CoordinateSystem3D {
                     return  1;
             }
         }
-        public void onRotate(float angle,int direction, int axis){
+        public void onRotate(float angle,int direction, int xAxis, int yAxis, int zAxis){
             int directionSelector = getDirection(direction);
             if(myScreen != null) {
                 setToScreenOrigin();
-                rotate(angle * directionSelector, axis, startVec);
-                rotate(angle * directionSelector, axis, endVec);
+                rotate(angle * directionSelector, xAxis,yAxis,zAxis, startVec);
+                rotate(angle * directionSelector, xAxis,yAxis,zAxis, endVec);
                 setOriginToCenter();
             } else {
                 System.err.println("SurfaceView myScreen is null");
