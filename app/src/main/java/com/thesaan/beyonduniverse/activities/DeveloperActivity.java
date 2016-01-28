@@ -1,4 +1,4 @@
-package com.thesaan.beyonduniverse;
+package com.thesaan.beyonduniverse.activities;
 
 import android.os.Bundle;
 import android.widget.Button;

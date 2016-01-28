@@ -6,21 +6,85 @@ import java.math.*;
 
 
 public class MathHandler {
-    public final static int FACTORIAL_ARGUMENT_ZERO = -1;
-    public final static int FACTORIAL_ARGUMENT_TOO_BIG = -2;
-    public final static int FACTORIAL_REPETITION_MAX = 20;
+    /**
+     *
+     */
+    final static int MULTIPLICATION = 1;
+    /**
+     *
+     */
+    final static int DIVISION = 2;
+    /**
+     *
+     */
+    final static int SUBTRACTION = 3;
+    /**
+     *
+     */
+    final static int ADDITION = 4;
+    /**
+     *
+     */
+    final static int FRAC = 4;
 
+    /**
+     * float null comparing precision
+     */
+    public static float precision = 0.00000001f;
+    /**
+     *
+     */
+    public final static int FACTORIAL_ARGUMENT_ZERO = -1;
+    /**
+     *
+     */
+    public final static int FACTORIAL_ARGUMENT_TOO_BIG = -2;
+    /**
+     *
+     */
+    public final static int FACTORIAL_REPETITION_MAX = 20;
+    /**
+     *
+     */
     public final static int ALTERNATIVE_DOUBLE_SET = -3;
+    /**
+     *
+     */
     public final static int ALTERNATIVE_LONG_SET = -4;
 
-    //identifiers to get a decimal value
+    /**
+     * identifiers to get a decimal value
+     */
     private final static int BIG_DECIMAL_REQUIRED = -5;
 
 
-    //alternative Values if a BigInteger is set instead of long 
+    /**
+     * alternative Values if a BigInteger is set instead of long
+     */
+
     private BigInteger alternativeLong;
-    //alternative Values if a BigDecimal is set instead of double 
+    /**
+     * alternative Values if a BigDecimal is set instead of double
+     */
     private BigDecimal alternativeDouble;
+
+    /**
+     * Proofs if a float is really zero.
+     *
+     * @param f
+     * @return
+     */
+    public static boolean isFloatZero(float f) {
+        float d = 1f;
+        if (f < 0) {
+            f *= -1;
+        }
+        if (Math.abs(f * d - 0) < precision) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     /**
      * Binomialcoefficent
@@ -51,6 +115,13 @@ public class MathHandler {
         }
     }
 
+    /**
+     * @param n
+     * @param success
+     * @param possibilities
+     * @param expectationValue
+     * @return
+     */
     public double getSigmaOfBinCE(int n, int success, int possibilities, double expectationValue) {
         double sigma = 0.0;
 
@@ -63,6 +134,11 @@ public class MathHandler {
         return sigma;
     }
 
+    /**
+     * @param n
+     * @param k
+     * @return
+     */
     public BigInteger getHugeBinCE(long n, long k) {
         BigInteger bce = getHugeFactorial(n).divide((getHugeFactorial(k).multiply(getHugeFactorial(n - k))));
 //                    System.out.println("   "+n+"!\n------------  =\t"+bce+"\n"+k+"! *("+n+"-"+k+")!");
@@ -70,6 +146,12 @@ public class MathHandler {
         return bce;
     }
 
+    /**
+     * @param n
+     * @param k
+     * @param identifier
+     * @return
+     */
     public BigDecimal getHugeBinCE(long n, long k, int identifier) {
         BigDecimal bce = getHugeFactorial(n, BIG_DECIMAL_REQUIRED).divide((getHugeFactorial(k, BIG_DECIMAL_REQUIRED).multiply(getHugeFactorial(n - k, BIG_DECIMAL_REQUIRED))));
 //                    System.out.println("   "+n+"!\n------------  =\t"+bce+"\n"+k+"! *("+n+"-"+k+")!");
@@ -117,6 +199,10 @@ public class MathHandler {
         return bd.doubleValue();
     }
 
+    /**
+     * @param n
+     * @return
+     */
     public BigInteger getHugeFactorial(long n) {
 
         BigInteger result = BigInteger.ONE;
@@ -128,6 +214,11 @@ public class MathHandler {
         return result;
     }
 
+    /**
+     * @param n
+     * @param identifier
+     * @return
+     */
     public BigDecimal getHugeFactorial(long n, int identifier) {
 
         BigDecimal result = BigDecimal.ONE;
@@ -139,6 +230,13 @@ public class MathHandler {
         return result;
     }
 
+    /**
+     * @param n
+     * @param k
+     * @param possibilities
+     * @param accuracy
+     * @return
+     */
     public synchronized double getProbability(int n, int k, int possibilities, int accuracy) {
         alternativeDouble = null;
         //the win percentage
@@ -214,6 +312,12 @@ public class MathHandler {
         return probabilities;
     }
 
+    /**
+     * @param values
+     * @param start
+     * @param end
+     * @return
+     */
     public BigDecimal getProbabilitiesFromRange(BigDecimal[] values, int start, int end) {
         BigDecimal range = BigDecimal.valueOf(0);
 
@@ -223,7 +327,11 @@ public class MathHandler {
         return range;
     }
 
-
+    /**
+     * @param n
+     * @param p
+     * @return
+     */
     public double getExpValueOfBinCE(int n, int p) {
         double my = 0.0;
 
@@ -235,6 +343,11 @@ public class MathHandler {
         return my;
     }
 
+    /**
+     * @param x
+     * @param y
+     * @return
+     */
     public static double getAngle(double x, double y) {
         double sin = x / y;
 
@@ -261,10 +374,19 @@ public class MathHandler {
         return basis;
     }
 
+    /**
+     * @param basis
+     * @return
+     */
     public static double squareRoot(double basis) {
         return power(basis, 0.5);
     }
 
+    /**
+     * @param basis
+     * @param n
+     * @return
+     */
     public static double squareRootX(double basis, double n) {
         try {
             double r = power(basis, (1.0 / n));
@@ -275,6 +397,9 @@ public class MathHandler {
         }
     }
 
+    /**
+     * @return
+     */
     public double getPrimitiveIntegral() {
         //TODO Integrieren
         double surface = 0;
@@ -340,6 +465,10 @@ public class MathHandler {
 
     }
 
+    /**
+     * @param lambda
+     * @return
+     */
     public double getDecreaseValue(double lambda) {
         double decr = 0.0;
         return decr;
@@ -348,15 +477,36 @@ public class MathHandler {
 
     public static class Matrix {
         /*----------------------------------------CONSTRUCTORS-----------------------------------*/
+        /**
+         * Pimary Matrix object
+         */
         float[][] mMatrix;
+
+        /**
+         * Right Top Matrix
+         */
+        float[][] rMatrix;
+
+        /**
+         * Left Bottom Matrix
+         */
+        float[][] lMatrix;
+
+        /**
+         * Saves the switch changes for "LR-Zerlegung"
+         */
+        private float[][] pMatrix;
+
 
         int columns, rows;
 
         public int numberOfElements;
-
+        /**
+         * Simulates real x axis
+         */
         public final static int X_AXIS = 0;
         /**
-         * Simulates real
+         * Simulates real y axis
          */
         public final static int Y_AXIS = 1;
         /**
@@ -411,7 +561,7 @@ public class MathHandler {
         }
 
         /**
-         * Creates a {@link com.thesaan.gameengine.android.handler.MathHandler.Matrix} out of the nm array
+         * Creates a {@link MathHandler.Matrix} out of the nm array
          *
          * @param nm
          */
@@ -496,7 +646,7 @@ public class MathHandler {
         }
 
         /**
-         * Multiplies an two dimensional array with a {@link com.thesaan.gameengine.android.handler.MathHandler.Vector}.
+         * Multiplies an two dimensional array with a {@link MathHandler.Vector}.
          * The size will get proofed.
          *
          * @param matrixArray
@@ -551,6 +701,36 @@ public class MathHandler {
 
                     for (int k = 0; k < m1.rows; k++) {
                         m1.getArray()[n][k] += m1.getArray()[k][m] * m2.getArray()[n][k];
+                    }
+                    //row
+                    m++;
+                }
+
+            } else {
+                System.err.println("Number of matrix columns is not equal to the number of second matrix data!");
+                return null;
+            }
+            return m1;
+        }
+
+        /**
+         * Multiplies two matrices in the argument order
+         *
+         * @param m1
+         * @param m2
+         * @return
+         */
+        public static float[][] multiplyMatrixByMatrix(float[][] m1, float[][] m2) {
+
+            int m = 0;
+            //check column amount
+            if (m1.length == m2.length) {
+                int length = m1.length;
+                //column
+                for (int n = 0; n < length; n++) {
+
+                    for (int k = 0; k < length; k++) {
+                        m1[n][k] += m1[k][m] * m2[n][k];
                     }
                     //row
                     m++;
@@ -626,6 +806,14 @@ public class MathHandler {
         }
         /*----------------------------------------GETTERS-----------------------------------*/
 
+        /**
+         * @param angle
+         * @param x
+         * @param y
+         * @param z
+         * @param origin
+         * @return
+         */
         public static float[][] getRotationMatrix(float angle, int x, int y, int z, @Nullable Vector origin) {
             if (x == 1 && y == 0 && z == 0) {
 
@@ -859,6 +1047,689 @@ public class MathHandler {
                     };
         }
 
+        //*******************************************************************
+
+        /**
+         * @param size
+         * @return
+         */
+        public float[][] getNullMatrix(int size) {
+            float[][] e = new float[size][size];
+
+            for (int i = 0; i < size; i++) {
+                for (int s = 0; s < size; s++) {
+                    e[i][s] = 0;
+                }
+            }
+
+            return e;
+        }
+
+        /**
+         * @param size
+         * @return
+         */
+        public float[][] getGeneralMatrix(int size) {
+
+            float[][] e = new float[size][size];
+
+            for (int i = 0; i < size; i++) {
+                for (int s = 0; s < size; s++) {
+                    if (s == i) {
+                        e[i][s] = 1;
+                    } else {
+                        e[i][s] = 0;
+                    }
+                }
+            }
+
+            return e;
+        }
+
+        /**
+         * @return
+         */
+        public float[][] getLMatrix() {
+
+            return null;
+        }
+
+        /**
+         * @param mMatrix
+         * @return
+         */
+        public float[][] getRMatrix(float[][] mMatrix) {
+
+            if (mMatrix != null) {
+
+                int length = mMatrix.length;
+
+                pMatrix = getGeneralMatrix(length);
+                lMatrix = getGeneralMatrix(length);
+
+                //standard matrix
+                float[][] e = getGeneralMatrix(length);
+
+
+                boolean isDone = false;
+
+                while (!isDone) {
+//                    optimizeRowOrder(mMatrix);
+                    //check if r is finished
+                    //go through columns
+                    for (int n = 0; n < length; n++) {
+                        boolean correct = true;
+                        //go through current row
+                        for (int m = 0; e[n][m] != 1; m++) {
+
+                            if (mMatrix[n][m] != e[n][m]) {
+                                correct = false;
+                            }
+                        }
+
+                        //stop testing
+                        if (!correct) {
+                            break;
+                        }
+
+                        //if bottom R Matrix is correct calculated
+                        if (correct && n == length - 1) {
+                            //just to be sure^^
+                            isDone = true;
+                            finishLMatrix();
+                            return mMatrix;
+                        }
+                    }
+
+                    //calculate
+
+                    //row
+                    for (int i = 1; i < length; i++) {
+                        //column
+                        for (int k = i - 1; k < i; k++) {
+                            /*
+                              * Now compare each row with each other
+                              * to check if a calculation can
+                              * a set row value to zero
+                             */
+
+                            //first row for calculation check
+                            float current = mMatrix[i - 1][k];
+                            //every following row after the first row
+                            //and check each possible calculation
+                            for (int u = i; u < length; u++) {
+                                //try subtraction or addition
+                                float next = mMatrix[u][k];
+
+                                //if next != 0 && current != 0
+                                if (!isFloatZero(current)) {
+
+                                    double factor = (next / current);
+
+                                    if (factor < 0) {
+                                        factor *= -1;
+                                    }
+                                    //store changes in left matrix
+                                    lMatrix[u][k] = (float) factor;
+
+                                    int cFactor = 1;
+
+                                    //set factor negative or positive
+                                    if (current < 0 && next < 0) {
+                                        cFactor *= -1;
+                                    }
+                                    if (current > 0 && next > 0) {
+                                        cFactor *= -1;
+                                    }
+//                                    if (current > 0 && next < 0) {
+//                                        cFactor *= -1;
+//                                    }
+                                    float[] temp = copyFloat(mMatrix[i - 1], k);
+
+                                    calculateRow(factor * cFactor, temp, MULTIPLICATION);
+
+                                    calculateRows(temp, mMatrix[u], ADDITION);
+
+
+                                    printMatrix(mMatrix);
+                                } else {
+                                    /*
+                                    if the "current" row has more zeros than
+                                    the next, switch them
+                                     */
+                                    optimizeRowOrder(mMatrix);
+                                }
+                            }
+                        }
+//
+                    }
+                }//while
+            }
+            return mMatrix;
+        }
+
+        /**
+         * @param matrix
+         */
+        public void optimizeRowOrder(float[][] matrix) {
+
+            int length = matrix.length;
+            //saves the number of zeros in the rows
+            int[] switchStatus = new int[length];
+            //saves the position of the zero
+            //by setting the index to on or off with 0 or 1
+            float[][] zeroColumnPosition = getNullMatrix(length);
+
+            //check if some rows can get changed first
+            int zeroCounter = 0; //counts how many zeros should stand in this row
+            int currentZeros = 0; //counts the zeros at the beginning of this row
+//
+//            System.out.println("before switch:\n");
+//            printMatrix(matrix);
+
+            for (int i = 1; i < length; i++) {
+                for (int k = 0; k <= i; k++) {
+                    if (k <= zeroCounter && isFloatZero(matrix[i][k])) {
+                        currentZeros++;
+                        zeroColumnPosition[i][k] = 1f;
+                    }
+                }
+
+                //save the zeros in this row
+                switchStatus[i] = currentZeros;
+                currentZeros = 0;
+                zeroCounter++;
+            }
+
+//            System.out.println("zero Storage:\n");
+//            printMatrix(zeroColumnPosition);
+
+            //change the rows if possible and save the changes for the P-Matrix
+            for (int i = 0; i < length - 1; i++) {
+                if (switchStatus[i] >= switchStatus[i + 1]) {
+                    //switch this row with the next
+                    switchRows(matrix, i, i + 1);
+                    //save changes in P-Matrix
+                    switchRows(pMatrix, i, i + 1);
+                }
+            }
+
+//            System.out.println("after switch:\n");
+//            printMatrix(matrix);
+
+        }
+
+        /**
+         * Applies the row switches which
+         * were saved in pMatrix
+         */
+        public void finishLMatrix() {
+
+            if (pMatrix != null) {
+                int length = pMatrix.length;
+                int[] changes = new int[length];
+
+                for (int i = 1; i < length + 1; i++) {
+                    for (int k = 0; k < length; k++) {
+                        if (k == i - 1 && pMatrix[i - 1][k] == 1f) {
+                            changes[i - 1] = i - 1;
+                        }
+                        if (k != i - 1 && pMatrix[i - 1][k] == 1f) {
+                            //if not standard, count columns until row element is 1
+                            //this counter shows the position of the origin row
+                            changes[i - 1] = k;
+                        }
+                    }
+                }
+
+                //now create a simple matrix where only the changed
+                //values of the L-Matrix are stored
+                float[][] lValues = getNullMatrix(length);
+
+                for (int i = 1; i < length; i++) {
+                    for (int k = 0; k < i; k++) {
+                        lValues[i][k] = lMatrix[i][k];
+                    }
+                }
+
+                //switch the rows which were changed
+                for (int i = 0; i < length - 1; i++) {
+                    if (changes[i] > changes[i + 1]) {
+                        //switch this row with the next
+                        switchRows(lValues, i, i + 1);
+                    }
+                }
+
+                //restore the changes to the original L-Matrix
+                for (int i = 1; i < length; i++) {
+                    for (int k = 0; k < i; k++) {
+                        lMatrix[i][k] = lValues[i][k];
+                    }
+                }
+
+            } else {
+
+            }
+        }
+
+
+        /**
+         * Eliminate elements with the standard gauß elimination
+         *
+         * @return
+         */
+        public float[][] gaussElimination() {
+
+            float precision = 0.00000001f;
+            if (pMatrix != null) {
+                /*
+                Maximum tries to find a multiplicator(or divider)
+                of a value
+                 */
+
+                printMatrix(mMatrix);
+                System.out.println("----------------\n");
+                int multiplicator_max = 50;
+
+                int length = mMatrix.length;
+
+                //standard matrix
+                float[][] e = getGeneralMatrix(length);
+
+                boolean isDone = false;
+
+                int loop = 1;
+                while (!isDone) {
+                    //check if r is finished
+                    //go through columns
+                    for (int n = 0; n < length; n++) {
+                        boolean correct = true;
+                        //go through current row
+                        for (int m = 0; e[n][m] != 1; m++) {
+
+                            if (mMatrix[n][m] != e[n][m]) {
+                                correct = false;
+                            }
+                        }
+
+                        //stop testing
+                        if (!correct) {
+                            break;
+                        }
+
+                        //if bottom R Matrix is correct calculated
+                        if (correct && n == length - 1) {
+                            //just to be sure^^
+                            isDone = true;
+                            printMatrix(mMatrix);
+                            return mMatrix;
+                        }
+                    }
+
+                    //calculate
+
+                    //row
+                    for (int i = 1; i < length; i++) {
+                        //column
+                        for (int k = i - 1; k < i; k++) {
+                            /*
+                              * Now compare each row with each other
+                              * to check if a calculation can
+                              * a set row value to zero
+                             */
+
+                            //first row for calculation check
+                            float current = mMatrix[i - 1][k];
+                            //every following row after the first row
+                            //and check each possible calculation
+                            for (int u = i; u < length; u++) {
+                                //try subtraction or addition
+                                float next = mMatrix[u][k];
+//                                    mMatrix[i + u][k] = 10.11f;
+
+                                //if next != 0 && current != 0
+                                if (Math.abs(current) >= precision) {
+                                    double factor = (next / current);
+
+                                    int cFactor = 1;
+
+                                    if (factor < 0) {
+                                        factor *= -1;
+                                    }
+                                    //set factor negative or positive
+                                    if (current < 0 && next < 0) {
+                                        cFactor *= -1;
+                                    }
+                                    if (current > 0 && next > 0) {
+                                        cFactor *= -1;
+                                    }
+                                    float[] temp = copyFloat(mMatrix[i - 1], k);
+
+                                    calculateRow(factor * cFactor, temp, MULTIPLICATION);
+
+                                    calculateRows(temp, mMatrix[u], ADDITION);
+
+                                    printMatrix(mMatrix);
+                                }
+                            }
+                        }
+//
+                    }
+                }//while
+
+            }
+
+            return null;
+        }
+
+        /**
+         * @param f
+         * @param offset
+         * @return
+         */
+        public float[] copyFloat(float[] f, int offset) {
+            float[] f2 = new float[f.length];
+
+            for (int i = 0; i < f.length; i++) {
+                if (i == offset - 1) {
+                    f2[i] = 0f;
+                } else {
+                    f2[i] = f[i];
+                }
+            }
+            return f2;
+        }
+
+        /**
+         * @return
+         */
+        public float[][] gaussElimation() {
+
+            float precision = 0.00000001f;
+            if (pMatrix != null) {
+                /*
+                Maximum tries to find a multiplicator(or divider)
+                of a value
+                 */
+
+                printMatrix(mMatrix);
+                System.out.println("----------------\n");
+                int multiplicator_max = 50;
+
+                int length = mMatrix.length;
+
+                //standard matrix
+                float[][] e = getGeneralMatrix(length);
+
+                boolean isDone = false;
+
+                int loop = 1;
+                while (!isDone) {
+                    //check if r is finished
+                    //go through columns
+                    for (int n = 0; n < length; n++) {
+                        boolean correct = true;
+                        //go through current row
+                        for (int m = 0; e[n][m] != 1; m++) {
+
+                            if (mMatrix[n][m] != e[n][m]) {
+                                correct = false;
+                            }
+                        }
+
+                        //stop testing
+                        if (!correct) {
+                            break;
+                        }
+
+                        //if bottom R Matrix is correct calculated
+                        if (correct && n == length - 1) {
+                            //just to be sure^^
+                            isDone = true;
+                            return mMatrix;
+                        }
+                    }
+
+
+                    //calculate
+                    for (int i = 0; i < length; i++) {
+                        for (int k = 0; k < length; k++) {
+                            if (mMatrix[i][i] == 1//diagonal line
+                                    && mMatrix[i][k] == 0) {//current position in row
+
+                                continue;//move on if current position is correct
+                            } else {
+                                /*
+                                  * Now compare each row with each other
+                                  * to check if a calculation can
+                                  * a set row value to zero
+                                 */
+
+                                //first row for calculation check
+                                for (int l = 0; l < (length - 1) - i; l++) {
+                                    float current = mMatrix[i + l][k];
+                                    //every following row after the first row
+                                    //and check each possible calculation
+                                    for (int u = l + 1; u < length - 1; u++) {
+                                        //try subtraction or addition
+                                        float next = mMatrix[i + u][k];
+                                        if (current <= next) {
+                                            /*
+                                            If an subtraction would create zero
+                                             */
+                                            if (Math.abs(next - current - 0) < precision) {
+                                                System.out.println(next + " - " + current + " = " +
+                                                        (next - current));
+                                                calculateRows(
+                                                        mMatrix[i + l],
+                                                        mMatrix[i + u],
+                                                        SUBTRACTION);
+                                                break;
+                                            }
+                                        } else if (current > next) {
+                                            /*
+                                            If an addition would create zero
+                                             */
+                                            if (Math.abs(current + next - 0) < precision) {
+
+                                                System.out.println(next + " + " + current + " = " +
+                                                        (next - current));
+                                                calculateRows(
+                                                        mMatrix[i + u],
+                                                        mMatrix[i + l],
+                                                        ADDITION);
+                                                break;
+                                            } else {
+                                                /*
+                                                Check if a multiplicator of the second value
+                                                could set the first value to zero
+                                                 */
+                                                for (int h = 1; h < multiplicator_max; h++) {
+                                                    //check for multiplication
+//                                                float box_test = Math.abs((current + (next * h)) - 0);
+//                                                System.err.println("Mult: " + box_test);
+//                                                box_test = Math.abs((current + (next / h)) - 0);
+//                                                System.err.println("Div: " + box_test);
+
+                                                    if (Math.abs(current) >= precision) {
+                                                        if (Math.abs((current + (next * h)) - 0) < precision) {
+//                                                        System.out.println("[Multiplicator *] " + current + " + " + (next * h) + " = " +
+//                                                                (current + (next * h)));
+                                                            calculateRow(
+                                                                    h,
+                                                                    (mMatrix[i + u]),
+                                                                    MULTIPLICATION);
+                                                            calculateRows(
+                                                                    mMatrix[i + u],
+                                                                    mMatrix[i + l],
+                                                                    ADDITION);
+                                                            break;
+                                                        } else
+                                                            //check for division
+
+                                                            if (Math.abs(current + (next / h) - 0) < precision) {
+//                                                            System.out.println("[Multiplicator /]" + current + " + " + (next * h) + " = " +
+//                                                                    (current + (next / h)));
+                                                                calculateRow(
+                                                                        h,
+                                                                        (mMatrix[i + u]),
+                                                                        DIVISION);
+                                                                calculateRows(
+                                                                        mMatrix[i + u],
+                                                                        mMatrix[i + l],
+                                                                        ADDITION);
+                                                                break;
+                                                            }
+                                                    }
+                                                }
+
+                                                /*
+                                                Check if a fraction could set the row to zero
+                                                 */
+//                                                System.out.println("Try fractions:\n\n");
+                                                for (double z = 1; z < multiplicator_max; z++) {
+                                                    for (double y = 1; y < z + 1; y++) {
+                                                        if (y != z) {
+                                                            double frac = y / z;
+                                                            if (Math.abs(current + frac - 0) < precision) {
+                                                                System.out.println("Addition: " + current + " + " + frac + " = 0");
+                                                                calculateRow(frac, mMatrix[i + l], ADDITION);
+                                                            }
+                                                            if (Math.abs(current - frac - 0) < precision) {
+                                                                System.out.println("Subtraction: " + current + " - " + frac + " = 0");
+                                                                calculateRow(frac, mMatrix[i + l], SUBTRACTION);
+                                                            }
+                                                            if (Math.abs(frac - 0) < precision && Math.abs(current / frac - 0) < precision) {
+                                                                System.out.println("Division: " + current + " / " + frac + " = 0");
+                                                                calculateRow(frac, mMatrix[i + l], DIVISION);
+                                                            }
+                                                            if (Math.abs(frac - 0) < precision && Math.abs(current * frac - 0) < precision) {
+                                                                System.out.println("Multiplication: " + current + " * " + frac + " = 0");
+                                                                calculateRow(frac, mMatrix[i + l], MULTIPLICATION);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+
+//                    System.out.println("Runs("+(loop++)+")");
+                }
+
+
+            }
+            return null;
+        }
+
+
+        /**
+         * Switch rows for Gauß' Elimination
+         *
+         * @param row1
+         * @param row2
+         */
+
+        public void switchRows(float[][] mMatrix, int row1, int row2) {
+            if (mMatrix != null) {
+                int columns = mMatrix.length;
+                int first = row1;
+                int second = row2;
+
+                float[] firstRow = copyFloat(mMatrix[first], 0);
+                float[] secondRow = copyFloat(mMatrix[second], 0);
+
+                for (int i = 0; i < columns; i++) {
+                    mMatrix[first][i] = secondRow[i];
+                    mMatrix[second][i] = firstRow[i];
+                }
+            }
+        }
+
+        /**
+         * @param calculation_value
+         * @param target
+         * @param calculation
+         */
+        public void calculateRows(float[] calculation_value, float[] target, int calculation) {
+            if (calculation_value.length == target.length) {
+                float[] temp = new float[target.length];
+
+                switch (calculation) {
+                    case MathHandler.SUBTRACTION:
+                        for (int i = 0; i < target.length; i++) {
+                            temp[i] = target[i] - calculation_value[i];
+                            target[i] = temp[i];
+                        }
+                        break;
+                    case MathHandler.ADDITION:
+                        for (int i = 0; i < target.length; i++) {
+                            temp[i] = target[i] + calculation_value[i];
+                            target[i] = temp[i];
+                        }
+                        break;
+                    case MathHandler.MULTIPLICATION:
+                        for (int i = 0; i < target.length; i++) {
+                            temp[i] = target[i] * calculation_value[i];
+                            target[i] = temp[i];
+                        }
+                        break;
+                    case MathHandler.DIVISION:
+                        for (int i = 0; i < target.length; i++) {
+                            temp[i] = target[i] / calculation_value[i];
+                            target[i] = temp[i];
+                        }
+                        break;
+
+                }
+
+            } else {
+                System.err.println("Length unequal in 'substractRow'!");
+            }
+        }
+
+        /**
+         * @param calculation_value
+         * @param target
+         * @param calculation
+         */
+        public void calculateRow(double calculation_value, float[] target, int calculation) {
+            double[] temp = new double[target.length];
+
+            switch (calculation) {
+                case MathHandler.SUBTRACTION:
+                    for (int i = 0; i < target.length; i++) {
+                        temp[i] = target[i] - calculation_value;
+                        target[i] = (float) temp[i];
+                    }
+                    break;
+                case MathHandler.ADDITION:
+                    for (int i = 0; i < target.length; i++) {
+                        temp[i] = target[i] + calculation_value;
+                        target[i] = (float) temp[i];
+                    }
+                    break;
+                case MathHandler.MULTIPLICATION:
+                    for (int i = 0; i < target.length; i++) {
+                        temp[i] = target[i] * calculation_value;
+                        target[i] = (float) temp[i];
+                    }
+                    break;
+                case MathHandler.DIVISION:
+                    for (int i = 0; i < target.length; i++) {
+                        temp[i] = target[i] / calculation_value;
+                        target[i] = (float) temp[i];
+                    }
+                    break;
+            }
+        }
+        //*******************************************************************
+
         /**
          * @param w current value
          * @param g whole amount
@@ -922,11 +1793,19 @@ public class MathHandler {
         public float[][] getArray() {
             return mMatrix;
         }
+
+        /**
+         * @param t
+         */
+        public void test(float[][] t) {
+            t[0][1] += 2;
+        }
     }
 
 
     public static class Vector {
         /*----------------------------------------CONSTRUCTORS-----------------------------------*/
+
         private int[] mIntVec;
         private float[] mFloatVec;
         private double[] mDoubleVec;
@@ -939,36 +1818,68 @@ public class MathHandler {
         private float[] screenCenter;
         private int screenWidth, screenHeight;
 
+        public Vector() {
+
+        }
+
+        /**
+         * @param vector
+         */
         public Vector(float[] vector) {
             mFloatVec = vector;
             isFloat = true;
         }
 
+        /**
+         * @param vector
+         */
         public Vector(double[] vector) {
             mDoubleVec = vector;
             isDouble = true;
         }
 
+        /**
+         * @param vector
+         */
         public Vector(int[] vector) {
             mIntVec = vector;
             isInt = true;
         }
 
+        /**
+         * @param x
+         * @param y
+         * @param z
+         */
         public Vector(int x, int y, int z) {
             mIntVec = new int[]{x, y, z, 1};
             isInt = true;
         }
 
+        /**
+         * @param x
+         * @param y
+         * @param z
+         */
         public Vector(float x, float y, float z) {
             mFloatVec = new float[]{x, y, z, 1};
             isFloat = true;
         }
 
+        /**
+         * @param x
+         * @param y
+         * @param z
+         */
         public Vector(double x, double y, double z) {
             mDoubleVec = new double[]{x, y, z, 1};
             isDouble = true;
         }
 
+        /**
+         * @param angle
+         * @return
+         */
         private Matrix get2DRotationMatrix(float angle) {
             Matrix m = new Matrix(2, 2);
             float[][] rotMatrix = m.getArray();
@@ -1022,6 +1933,14 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param angle
+         * @param xAxis
+         * @param yAxis
+         * @param zAxis
+         * @param projCamView
+         * @param origin
+         */
         public void rotate3D(float angle, int xAxis, int yAxis, int zAxis, @Nullable Matrix projCamView, @Nullable Vector origin) {
             Matrix m = new Matrix(4, 4);
 
@@ -1063,6 +1982,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param scaleFactor
+         */
         public void scale(float scaleFactor) {
 
             Vector vec = Matrix.multiplyMatrixByVector(new Matrix().getScaleMatrix(scaleFactor), this);
@@ -1084,29 +2006,48 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param axis
+         * @return
+         */
         public Vector mirror(int axis) {
 
             return null;
         }
 
+        /**
+         *
+         */
         public void definePositionAsScreenPercentage() {
             setX(((screenWidth / 100) * getXf()) / screenWidth);
             setY(((screenHeight / 100) * getYf()) / screenHeight);
             setZ((((screenWidth / 2) / 100) * getZf()) / (screenWidth / 2));
         }
 
+        /**
+         * @return
+         */
         public int[] getmIntVec() {
             return mIntVec;
         }
 
+        /**
+         * @return
+         */
         public float[] getmFloatVec() {
             return mFloatVec;
         }
 
+        /**
+         * @return
+         */
         public double[] getmDoubleVec() {
             return mDoubleVec;
         }
 
+        /**
+         * @return
+         */
         public double getLength() {
             if (isInt) {
                 return Math.sqrt((Math.pow(mIntVec[0], 2) + Math.pow(mIntVec[1], 2) + Math.pow(mIntVec[2], 2)));
@@ -1118,20 +2059,32 @@ public class MathHandler {
                 return -1;
         }
 
+        /**
+         * @return
+         */
         public boolean isDouble() {
             return isDouble;
         }
 
+        /**
+         * @return
+         */
         public boolean isFloat() {
             return isFloat;
         }
 
+        /**
+         * @return
+         */
         public boolean isInt() {
             return isInt;
         }
 
         //calculation
 
+        /**
+         * @param vector
+         */
         public void subtractWith(float[] vector) {
             if (isFloat) {
                 float[] i = this.getmFloatVec();
@@ -1144,18 +2097,10 @@ public class MathHandler {
             }
         }
 
-        public void addWith(float[] vector) {
-            if (isFloat) {
-                float[] i = this.getmFloatVec();
-                float[] i2 = vector;
-                i[0] += i2[0];
-                i[1] += i2[1];
-                i[2] += i2[2];
-
-                setmFloatVec(i);
-            }
-        }
-
+        /**
+         * @param vector
+         * @return
+         */
         public Vector subtractWith(Vector vector) {
             if (isInt) {
                 int[] i = this.getmIntVec();
@@ -1188,6 +2133,25 @@ public class MathHandler {
                 return null;
         }
 
+        /**
+         * @param vector
+         */
+        public void addWith(float[] vector) {
+            if (isFloat) {
+                float[] i = this.getmFloatVec();
+                float[] i2 = vector;
+                i[0] += i2[0];
+                i[1] += i2[1];
+                i[2] += i2[2];
+
+                setmFloatVec(i);
+            }
+        }
+
+        /**
+         * @param vector
+         * @return
+         */
         public Vector addWith(Vector vector) {
             if (isInt) {
                 int[] i = this.getmIntVec();
@@ -1220,34 +2184,50 @@ public class MathHandler {
                 return null;
         }
 
+
+        /**
+         * @param mulitplier
+         */
         public void multiplyBy(float mulitplier) {
             if (isInt) {
                 setX((int) (mulitplier * getXi()));
                 setY((int) (mulitplier * getYi()));
                 setZ((int) (mulitplier * getZi()));
             } else if (isFloat) {
-                setX((int) (mulitplier * getXf()));
-                setY((int) (mulitplier * getYf()));
-                setZ((int) (mulitplier * getZf()));
+                setX((float) (mulitplier * getXf()));
+                setY((float) (mulitplier * getYf()));
+                setZ((float) (mulitplier * getZf()));
             } else if (isDouble) {
-                setX((int) (mulitplier * getXd()));
-                setY((int) (mulitplier * getYd()));
-                setZ((int) (mulitplier * getZd()));
+                setX((double) (mulitplier * getXd()));
+                setY((double) (mulitplier * getYd()));
+                setZ((double) (mulitplier * getZd()));
             }
         }
 
+        /**
+         * @param i
+         */
         public void setmIntVec(int[] i) {
             this.mIntVec = i;
         }
 
+        /**
+         * @param f
+         */
         public void setmFloatVec(float[] f) {
             this.mFloatVec = f;
         }
 
+        /**
+         * @param d
+         */
         public void setmDoubleVec(double[] d) {
             this.mDoubleVec = d;
         }
 
+        /**
+         * @param x
+         */
         public void setX(int x) {
             if (mIntVec != null) {
                 mIntVec[0] = x;
@@ -1256,6 +2236,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param x
+         */
         public void setX(float x) {
             if (mFloatVec != null) {
                 mFloatVec[0] = x;
@@ -1264,6 +2247,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param x
+         */
         public void setX(double x) {
             if (mDoubleVec != null) {
                 mDoubleVec[0] = x;
@@ -1272,6 +2258,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param y
+         */
         public void setY(int y) {
             if (mIntVec != null) {
                 mIntVec[1] = y;
@@ -1280,6 +2269,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param y
+         */
         public void setY(float y) {
             if (mFloatVec != null) {
                 mFloatVec[1] = y;
@@ -1288,6 +2280,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param y
+         */
         public void setY(double y) {
             if (mDoubleVec != null) {
                 mDoubleVec[1] = y;
@@ -1296,6 +2291,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param z
+         */
         public void setZ(int z) {
             if (mIntVec != null) {
                 mIntVec[2] = z;
@@ -1304,6 +2302,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param z
+         */
         public void setZ(float z) {
             if (mFloatVec != null) {
                 mFloatVec[2] = z;
@@ -1312,6 +2313,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param z
+         */
         public void setZ(double z) {
             if (mDoubleVec != null) {
                 mDoubleVec[2] = z;
@@ -1320,7 +2324,11 @@ public class MathHandler {
             }
         }
 
-
+        /**
+         * @param vector1
+         * @param vector2
+         * @return
+         */
         public static float[] getDistance(float[] vector1, float[] vector2) {
             float[] distance = new float[4];
             for (int i = 0; i < distance.length - 1; i++) {
@@ -1330,14 +2338,30 @@ public class MathHandler {
             return distance;
         }
 
+        /**
+         *
+         */
         public void setToScreenOrigin() {
             subtractWith(Vector.getDistance(mFloatVec, screenCenter));
         }
 
+        public void setScreenCenter(int screenWidth, int screenHeight) {
+            if (mFloatVec != null) {
+                screenCenter = new float[]{screenWidth / 2, screenHeight / 2, 0};
+            }
+        }
+
+        /**
+         *
+         */
         public void setToObjectOrigin() {
             addWith(Vector.getDistance(mFloatVec, screenCenter));
         }
 
+        /**
+         * @param width
+         * @param height
+         */
         public void setScreenSize(int width, int height) {
             screenWidth = width;
             screenHeight = height;
@@ -1347,6 +2371,9 @@ public class MathHandler {
             System.out.println();
         }
 
+        /**
+         * @return
+         */
         public int getXi() {
             if (isInt()) {
                 return mIntVec[0];
@@ -1361,6 +2388,9 @@ public class MathHandler {
 
         }
 
+        /**
+         * @return
+         */
         public float getXf() {
             if (isFloat()) {
                 return mFloatVec[0];
@@ -1374,6 +2404,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @return
+         */
         public double getXd() {
             if (isDouble()) {
                 return mDoubleVec[1];
@@ -1387,6 +2420,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @return
+         */
         public int getYi() {
             if (isInt()) {
                 return mIntVec[1];
@@ -1401,6 +2437,9 @@ public class MathHandler {
 
         }
 
+        /**
+         * @return
+         */
         public float getYf() {
             if (isFloat()) {
                 return mFloatVec[1];
@@ -1414,6 +2453,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @return
+         */
         public double getYd() {
             if (isDouble()) {
                 return mDoubleVec[1];
@@ -1427,6 +2469,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @return
+         */
         public int getZi() {
             if (isInt()) {
                 return mIntVec[2];
@@ -1441,6 +2486,9 @@ public class MathHandler {
 
         }
 
+        /**
+         * @return
+         */
         public float getZf() {
             if (isFloat()) {
                 return mFloatVec[2];
@@ -1454,6 +2502,9 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @return
+         */
         public double getZd() {
             if (isDouble()) {
                 return mDoubleVec[2];
@@ -1467,79 +2518,104 @@ public class MathHandler {
             }
         }
 
+        /**
+         * @param isDouble
+         */
+        public void setIsDouble(boolean isDouble) {
+            this.isDouble = isDouble;
+        }
 
+        /**
+         * @param isFloat
+         */
+        public void setIsFloat(boolean isFloat) {
+            this.isFloat = isFloat;
+        }
+
+        /**
+         * @param isInt
+         */
+        public void setIsInt(boolean isInt) {
+            this.isInt = isInt;
+        }
+
+        /**
+         *
+         */
+        public void print() {
+            if (isInt) {
+                System.out.print("{ ");
+                for (int i : mIntVec) {
+                    System.out.print(" " + i + ",");
+                }
+                System.out.print(" }\n");
+            }
+            if (isFloat) {
+                System.out.print("{ ");
+                for (float i : mFloatVec) {
+                    System.out.print(" " + i + ",");
+                }
+                System.out.print(" }\n");
+            }
+            if (isDouble) {
+                System.out.print("{ ");
+                for (double i : mDoubleVec) {
+                    System.out.print(" " + i + ",");
+                }
+                System.out.print(" }\n");
+            }
+        }
     }
-
-    public static void main(String[] args) {
-        MathHandler m = new MathHandler();
-        
-       /*
-        int n = 20;
-        int k = 3;
-        int p = 100;
-        
-        int rangeStart = 0;
-        int rangeEnd = 1;
-        int accuracy = 6;
-        */
-
-        /* Matrix multiply test
-        double [] values;
-        double[][] mValues = {
-                new double[]{10,10,0,0.5},
-                new double[]{30,30,25,0.2},
-                new double[]{20,2,12,0.1}
-        };
-        double a = 70;
-        double b = 80;
-        double c = 100;
-        Vector vector = new Vector(a,b,c);
-        values = vector.getmDoubleVec();
-        System.out.println("V -> {"+values[0]+","+values[1]+","+values[2]+"}");
-
-        vector = RotationMatrix.multiplyMatrixByVector(mValues,vector);
-
-        values = vector.getmDoubleVec();
-        System.out.println("V -> {"+values[0]+","+values[1]+","+values[2]+"}");
-        */
-
-/*
-        double[][] matrix = {
-                new double[]{8,5,2},
-                new double[]{17,23,15}
-        };
-
-        double[][] trans = RotationMatrix.transpositionMatrix(matrix);
-
-
-        Matrix.printMatrix(matrix);
-        System.out.println("New:\n");
-        Matrix.printMatrix(trans);*/
-        //////////////////////////////////////////////////////////
-//        int n = 2000;
 //
-//        int sol = 0;
-//        int j = 0;
-//
-//        boolean is = false;
-//
-//        for( int k = 0; is = true && j != 1000000; k++){
-//            j++;
-//            sol += (int)m.getBinCE(n,k);
-////            System.out.println("Solution "+(k+1)+" :"+sol);
-//            if( Math.pow(2, n) == sol){
-//                System.out.println("Stimmt bei l="+k);
-//                is = true;
-//            }
-//
-//            if(j == 1000000){
-//                System.err.println("Fertig");
-//                is = true;
-//            }
-//        }
-        /////////////////////////////////////////////////////////
-
-    }
+//    public static void main(String[] args) {
+//        MathHandler m = new MathHandler();
+//        //LR Matrix Calculation box_test
+////        Matrix matrix = new Matrix();
+////
+////        float[][] f1 = new float[][]{
+////                {2f, -3f, 1f},
+////                {6f, -9f, 2f},
+////                {4f, 0f, 2f}
+////        };
+////
+////        float[][] f2 = new float[][]{
+////                {2f, 1f, 3f},
+////                {4f, -1f, 3f},
+////                {-2f, 5f, 5f}
+////        };
+////        matrix.setMatrix(new float[][]{
+////                {2f, 1f, 3f},
+////                {4f, -1f, 3f},
+////                {-2f, 5f, 5f}
+////        });
+////
+////        matrix.rMatrix = matrix.getRMatrix(f2);
+////        System.out.println("A-Matrix:\n");
+////        matrix.printMatrix(matrix.getArray());
+////        System.out.println("R-Matrix:\n");
+////        matrix.printMatrix(matrix.rMatrix);
+////        System.out.println("L-Matrix:\n");
+////        matrix.printMatrix(matrix.lMatrix);
+////        System.out.println("P Matrix:\n");
+////        matrix.printMatrix(matrix.pMatrix);
+////
+////        Matrix L = new Matrix(matrix.lMatrix);
+////        Matrix R = new Matrix(matrix.rMatrix);
+////        Matrix P = new Matrix(matrix.pMatrix);
+////        Matrix A = new Matrix(matrix.mMatrix);
+////        f2 = new float[][]{
+////                {2f, 1f, 3f},
+////                {4f, -1f, 3f},
+////                {-2f, 5f, 5f}
+////        };
+////        float[][] LR = Matrix.multiplyMatrixByMatrix(matrix.lMatrix, matrix.rMatrix);
+////        float[][] PA = Matrix.multiplyMatrixByMatrix(matrix.pMatrix, matrix.mMatrix);
+////
+////        System.out.println("L * R:\n");
+////        Matrix.printMatrix(LR);
+////        System.out.println("P * A:\n");
+////        Matrix.printMatrix(PA);
+//    }
 
 
 }

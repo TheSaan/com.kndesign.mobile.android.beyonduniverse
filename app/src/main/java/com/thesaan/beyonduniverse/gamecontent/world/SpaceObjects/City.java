@@ -1,6 +1,8 @@
 package com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects;
 
+import com.thesaan.beyonduniverse.gamecontent.Race;
 import com.thesaan.beyonduniverse.gamecontent.economy.Market;
+import com.thesaan.beyonduniverse.gamecontent.world.Map;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
 
 /**
@@ -8,27 +10,25 @@ import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
  */
 public class City extends UniverseObject implements UniverseObjectProperties {
 
-    public City(String name, long population, Market market, int type,int seed){
-        super(name,population,market,type,seed);
+    int race;
+
+    Market market;
+
+    public City(String name, UniverseObject parent, Map map, int seed) {
+        super(name, OBJECT_CITY, parent, map, seed);
     }
 
-    public Market getMarket(){
-        return market;
-    }
-    public long getPopulation(){
+    public long getPopulation() {
         return population;
     }
 
-
     /**
-     * Creates {@link Market}s for all cities.
+     * Creates {@link Market} with trading properties.
      *
-     * @param amount
      * @return
      */
-    private Market[] createMarkets(int amount) {
-
-        return new Market[amount];
+    public void createMarket() {
+        market = new Market(new Race(race),name,parent.getPlanetType());
     }
 
 }

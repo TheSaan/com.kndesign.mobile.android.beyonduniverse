@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/com.thesaan.android.game.beyonduniverse.iml" filepath="$PROJECT_DIR$/com.thesaan.android.game.beyonduniverse.iml" />
+      <module fileurl="file://$PROJECT_DIR$/jpct_ae/jpct_ae.iml" filepath="$PROJECT_DIR$/jpct_ae/jpct_ae.iml" />
     </modules>
   </component>
 </project>

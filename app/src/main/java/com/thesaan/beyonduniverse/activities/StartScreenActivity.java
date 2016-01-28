@@ -1,11 +1,10 @@
-package com.thesaan.beyonduniverse.gamecontent;
+package com.thesaan.beyonduniverse.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import com.thesaan.beyonduniverse.DeveloperActivity;
 import com.thesaan.beyonduniverse.R;
 import com.thesaan.gameengine.android.activities.ProActivity;
 
@@ -36,8 +35,8 @@ public class StartScreenActivity extends ProActivity  implements View.OnClickLis
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.B_new_game:
-//TODO                normally run GameActivity, but for now just test MainActivity
-                Intent newGame = new Intent(getApplicationContext(),GameActivity.class);
+//TODO                normally run GameActivity, but for now just box_test MainActivity
+                Intent newGame = new Intent(getApplicationContext(), com.thesaan.beyonduniverse.activities.GameActivity.class);
                 startActivity(newGame);
                 break;
             case R.id.B_load_game:

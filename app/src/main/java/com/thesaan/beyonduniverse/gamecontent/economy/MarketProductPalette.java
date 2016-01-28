@@ -3,7 +3,6 @@ package com.thesaan.beyonduniverse.gamecontent.economy;
 import android.content.Context;
 import android.database.Cursor;
 
-import com.thesaan.beyonduniverse.MainActivity;
 import com.thesaan.beyonduniverse.gamecontent.Race;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
 import com.thesaan.gameengine.android.DB_Settings;
@@ -71,7 +70,7 @@ public class MarketProductPalette implements UniverseObjectProperties{
 
     public MarketProductPalette(Context context,Race race, int planetType){
         myRace = race;
-        db = MainActivity.uDb;
+//        db = MainActivity.uDb;
         this.context = context;
         this.planetType = planetType;
         mySortiment = createSortiment();

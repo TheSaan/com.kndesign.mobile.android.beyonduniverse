@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 
 import com.thesaan.gameengine.android.handler.MathHandler;
-import com.thesaan.gameengine.android.ui.StarMapSurface;
 
 /**
  * Created by mknoe on 28.04.2015.
@@ -205,21 +204,21 @@ public class Cube implements Form{
 
         int directionSelector;
 
-        switch (direction){
-            case StarMapSurface.DIRECTION_LEFT:
-            case StarMapSurface.DIRECTION_UP:{
-                directionSelector = -1;
-                break;
-            }
-            case StarMapSurface.DIRECTION_RIGHT:
-            case StarMapSurface.DIRECTION_DOWN:{
-                directionSelector = 1;
-                break;
-            }
-            default:
-                directionSelector = 1;
-                break;
-        }
+//        switch (direction){
+//            case StarMapSurface.DIRECTION_LEFT:
+//            case StarMapSurface.DIRECTION_UP:{
+//                directionSelector = -1;
+//                break;
+//            }
+//            case StarMapSurface.DIRECTION_RIGHT:
+//            case StarMapSurface.DIRECTION_DOWN:{
+//                directionSelector = 1;
+//                break;
+//            }
+//            default:
+//                directionSelector = 1;
+//                break;
+//        }
 
         for(int i = 0;i < points.length; i++) {
             points[i].rotate3D(angle, xAxis, yAxis, zAxis, null, null);

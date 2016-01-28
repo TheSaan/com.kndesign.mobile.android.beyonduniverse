@@ -1,5 +1,6 @@
 package com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects;
 
+import com.thesaan.beyonduniverse.gamecontent.world.Map;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
 import com.thesaan.gameengine.android.handler.BitmapHandler;
 import com.thesaan.gameengine.android.handler.MathHandler;
@@ -27,10 +28,11 @@ public class Star extends UniverseObject {
     String gifStarYellow = "Yellow";
 
     private String gifFileName;
-    public Star(String name, MathHandler.Vector position, float mass, float degrees, int type,int seed){
-        super(name,position,mass,degrees,type,seed);
 
-        mEnergy = degrees*ENERGY_MULTIPLIER;
+    public Star(String name, UniverseObject parent, Map map, int seed) {
+        super(name, OBJECT_STAR, parent, map, seed);
+
+        mEnergy = temperature * ENERGY_MULTIPLIER;
 
         setLuminosity(mass);
         setInnerHabitableBorder();
@@ -39,25 +41,25 @@ public class Star extends UniverseObject {
         generateStarColor();
     }
 
-    public String getGifFileName(){
+    public String getGifFileName() {
         return gifFileName;
     }
 
-    private void generateStarColor(){
-        switch (RandomHandler.createIntegerFromRange(1,4,new Random())){
-            case 1:{
+    private void generateStarColor() {
+        switch (RandomHandler.createIntegerFromRange(1, 4, new Random())) {
+            case 1: {
                 gifFileName = gifPrefix + gifStarYellow + BitmapHandler.FORMAT_GIF;
             }
-            case 2:{
+            case 2: {
                 gifFileName = gifPrefix + gifStarOrange + BitmapHandler.FORMAT_GIF;
             }
-            case 3:{
+            case 3: {
                 gifFileName = gifPrefix + gifStarRed + BitmapHandler.FORMAT_GIF;
             }
-            case 4:{
+            case 4: {
                 gifFileName = gifPrefix + gifStarBrightBlue + BitmapHandler.FORMAT_GIF;
             }
-            default:{
+            default: {
                 gifFileName = gifPrefix + gifStarYellow + BitmapHandler.FORMAT_GIF;
             }
         }
@@ -65,15 +67,16 @@ public class Star extends UniverseObject {
 
     /**
      * Defines the luminosity (DE: Leuchtkraft)
+     *
      * @param mass
      */
-    public void setLuminosity(float mass){
+    public void setLuminosity(float mass) {
         lumosity = 0.0f;
 
-        if(mass < UniverseObjectProperties.SUN_MASS){
-            lumosity = 1.75f*(mass-0.1f)+3.325f;
-        }else{
-            lumosity = 0.5f*(2.0f-mass)+4.4f;
+        if (mass < UniverseObjectProperties.SUN_MASS) {
+            lumosity = 1.75f * (mass - 0.1f) + 3.325f;
+        } else {
+            lumosity = 0.5f * (2.0f - mass) + 4.4f;
         }
     }
 
@@ -81,18 +84,19 @@ public class Star extends UniverseObject {
      * Sets the distance in AE
      * TODO maybe calculation in pixels
      */
-    public void setInnerHabitableBorder(){
-        innerHabitableBorderRadius = (float)(0.93f*(Math.sqrt((double)lumosity)+0.5f)*(149.6f));
+    public void setInnerHabitableBorder() {
+        innerHabitableBorderRadius = (float) (0.93f * (Math.sqrt((double) lumosity) + 0.5f) * (149.6f));
     }
 
     /**
      * Sets the distance in AE
      * TODO maybe calculation in pixels
      */
-    public void setOuterHabitableBorder(){
-        outerHabitableBorderRadius = (float)(1.1f*(Math.sqrt((double)lumosity)+0.5f)*(149.6f));
+    public void setOuterHabitableBorder() {
+        outerHabitableBorderRadius = (float) (1.1f * (Math.sqrt((double) lumosity) + 0.5f) * (149.6f));
     }
-    public float getSolarPower(){
+
+    public float getSolarPower() {
         return mEnergy;
     }
 }

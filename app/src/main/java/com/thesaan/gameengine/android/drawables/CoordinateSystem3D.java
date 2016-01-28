@@ -6,7 +6,6 @@ import android.graphics.Paint;
 import android.view.SurfaceHolder;
 
 import com.thesaan.gameengine.android.handler.MathHandler;
-import com.thesaan.gameengine.android.ui.StarMapSurface;
 
 
 /**
@@ -180,7 +179,7 @@ public class CoordinateSystem3D {
         private float myStartX,myStartZ,myStartY,myEndX,myEndZ,myEndY;
 
         //to get the touch event
-        private StarMapSurface myScreen;
+//        private StarMapSurface myScreen;
 
         float top,bottom,left,right;
         float centerX;
@@ -203,12 +202,11 @@ public class CoordinateSystem3D {
          * @param start
          * @param end
          * @param edges
-         * @param surfaceView
          */
-        public CoordinateAxis(Coordinate start, Coordinate end, float[] edges, StarMapSurface surfaceView, int axis){
+        public CoordinateAxis(Coordinate start, Coordinate end, float[] edges, int axis){
 
             synchronized(this){
-                myScreen = surfaceView;
+//                myScreen = surfaceView;
             }
 
             top = edges[0];
@@ -284,9 +282,9 @@ public class CoordinateSystem3D {
         private void setAxisName(String name){
             myAxis = name;
         }
-        public void setMyScreen(StarMapSurface s){
-            myScreen = s;
-        }
+//        public void setMyScreen(StarMapSurface s){
+//            myScreen = s;
+//        }
 
 
         /*----------------------------------------BOOLERS-----------------------------------*/
@@ -316,31 +314,31 @@ public class CoordinateSystem3D {
         private void rotate(float angle, int xAxis, int yAxis, int zAxis, MathHandler.Vector vector){
             vector.rotate3D(angle,xAxis,yAxis,zAxis,null,null);
         }
-        public static int getDirection(int direction){
-            switch (direction){
-                case StarMapSurface.DIRECTION_LEFT:
-                case StarMapSurface.DIRECTION_UP:{
-                    return  -1;
-                }
-                case StarMapSurface.DIRECTION_RIGHT:
-                case StarMapSurface.DIRECTION_DOWN:{
-                    return  1;
-                }
-                default:
-                    return  1;
-            }
-        }
-        public void onRotate(float angle,int direction, int xAxis, int yAxis, int zAxis){
-            int directionSelector = getDirection(direction);
-            if(myScreen != null) {
-                setToScreenOrigin();
-                rotate(angle * directionSelector, xAxis,yAxis,zAxis, startVec);
-                rotate(angle * directionSelector, xAxis,yAxis,zAxis, endVec);
-                setOriginToCenter();
-            } else {
-                System.err.println("SurfaceView myScreen is null");
-            }
-        }
+//        public static int getDirection(int direction){
+//            switch (direction){
+//                case StarMapSurface.DIRECTION_LEFT:
+//                case StarMapSurface.DIRECTION_UP:{
+//                    return  -1;
+//                }
+//                case StarMapSurface.DIRECTION_RIGHT:
+//                case StarMapSurface.DIRECTION_DOWN:{
+//                    return  1;
+//                }
+//                default:
+//                    return  1;
+//            }
+//        }
+//        public void onRotate(float angle,int direction, int xAxis, int yAxis, int zAxis){
+//            int directionSelector = getDirection(direction);
+//            if(myScreen != null) {
+//                setToScreenOrigin();
+//                rotate(angle * directionSelector, xAxis,yAxis,zAxis, startVec);
+//                rotate(angle * directionSelector, xAxis,yAxis,zAxis, endVec);
+//                setOriginToCenter();
+//            } else {
+//                System.err.println("SurfaceView myScreen is null");
+//            }
+//        }
         public void setToScreenOrigin(){
             MathHandler.Vector changeVec = new MathHandler.Vector(250.0f,0f,250.0f);
             startVec = startVec.subtractWith(changeVec);

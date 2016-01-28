@@ -1,5 +1,6 @@
 package com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects;
 
+import com.thesaan.beyonduniverse.gamecontent.world.Map;
 import com.thesaan.gameengine.android.handler.MathHandler;
 
 /**
@@ -8,11 +9,8 @@ import com.thesaan.gameengine.android.handler.MathHandler;
 public class Comet extends UniverseObject {
 
 
-    public Comet(String name, MathHandler.Vector position, float mass, float degrees, int type,int seed){
-        super(name,position,mass,degrees,type, seed);
+    public Comet(String name,Map map,int seed){
+        super(name,OBJECT_COMET,null, map, seed);
 
-        this.type = type;
-
-        setRandomRadius(random);
     }
 }

@@ -1,6 +1,7 @@
 package com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects;
 
 import com.thesaan.beyonduniverse.gamecontent.economy.Market;
+import com.thesaan.beyonduniverse.gamecontent.world.Map;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
 import com.thesaan.gameengine.android.handler.MathHandler;
 import com.thesaan.gameengine.android.handler.RandomHandler;
@@ -12,47 +13,73 @@ import java.util.Random;
  */
 public class Planet extends UniverseObject {
 
-    public Planet(String name, MathHandler.Vector position, float mass, float degrees, int type, int planetType, int seed){
-        super(name,position,mass,degrees,type, seed);
+    private boolean isHabitabel = false;
+
+    City[] cities;
+    Moon[] moons;
+
+    public Planet(String name, UniverseObject parent, Map map, int seed) {
+        super(name, OBJECT_PLANET, parent, map, seed);
+
+        setPlanetType();
+    }
+
+    public static String getPlanetTypeName(int myPlanetType) {
+        switch (myPlanetType) {
+            case PLANET_TYPE_GRASS:
+                return "Grass planet";
+            case PLANET_TYPE_WATER:
+                return "Water planet";
+            case PLANET_TYPE_DESSERT:
+                return "Dessert planet";
+            case PLANET_TYPE_MAGMA:
+                return "Magma planet";
+            case PLANET_TYPE_DSCHUNGLE:
+                return "Dschungle planet";
+            case PLANET_TYPE_STONE:
+                return "Stone planet";
+            case PLANET_TYPE_SNOW:
+                return "Snow planet";
+            case PLANET_TYPE_ICE:
+                return "Ice planet";
+            case PLANET_TYPE_LOST:
+                return "Planet lost";
+            default:
+                return "no planet type detected";
+        }
+    }
 
 
-        this.planetType = planetType;
-        this.type = type;
+    public void setPlanetType() {
+        setRandomTemperature();
 
-        setRandomRadius(random);
-        if(cities != null) {
-            this.cities = cities;
+        if (temperature < MAX_TEMPERATURE_TO_SURVIVE && temperature > MIN_TEMPERATURE_TO_SURVIVE) {
 
-            this.markets = new Market[this.cities.length];
 
-            for (int i = 0; i < cities.length; i++) {
-                this.population += cities[i].getPopulation();
-                Market m = cities[i].getMarket();
-                this.markets[i] = m;
+            if (temperature <= 3) {
+                planetType = PLANET_TYPE_SNOW;
+            } else if (temperature < 35 && temperature > 3) {
+                setRandomPlanetType();
+            } else if (temperature > 45 && temperature < MAX_TEMPERATURE_TO_SURVIVE) {
+                planetType = PLANET_TYPE_DESSERT;
             }
-        }
-        if(moons != null) {
-            this.moons = moons;
-        }
-    }
+            isHabitabel = true;
 
-    public static String getPlanetTypeName(int myPlanetType){
-        switch (myPlanetType){
-            case PLANET_TYPE_GRASS: return "Grass planet";
-            case PLANET_TYPE_WATER: return "Water planet";
-            case PLANET_TYPE_DESSERT: return "Dessert planet";
-            case PLANET_TYPE_MAGMA: return "Magma planet";
-            case PLANET_TYPE_DSCHUNGLE: return "Dschungle planet";
-            case PLANET_TYPE_STONE: return "Stone planet";
-            case PLANET_TYPE_SNOW: return "Snow planet";
-            case PLANET_TYPE_ICE: return "Ice planet";
-            case PLANET_TYPE_LOST: return "Planet lost";
-            default: return "no planet type detected";
-        }
-    }
+            createCities();
 
-    public int getPlanetType() {
-        return planetType;
+        } else {
+
+            if (temperature < 500 && temperature > 0) {
+                planetType = PLANET_TYPE_STONE;
+            } else if (temperature >= 500) {
+                planetType = PLANET_TYPE_MAGMA;
+            } else if (temperature < MIN_TEMPERATURE_TO_SURVIVE) {
+                planetType = PLANET_TYPE_ICE;
+            } else {
+                planetType = PLANET_TYPE_LOST;
+            }
+            cities = null;
+        }
     }
 
     /**
@@ -72,24 +99,12 @@ public class Planet extends UniverseObject {
 
             for (int i = 0; i < a; i++) {
 
-                mass = UniverseObject.setRandomMass(OBJECT_MOON,random);
-                degrees = UniverseObject.setRandomTemperature(OBJECT_MOON,random);
-
-                vec2 = UniverseObject.setRandomMoonPosition(vec.getXf(), vec.getYf(), vec.getZf(),random);
-
-                Moon m = new Moon("", vec2, mass, degrees, OBJECT_MOON,random.nextInt());
+                Moon m = new Moon("", this, getMap(), random.nextInt());
                 moons[i] = m;
 
                 name = moons[i].getName();
-
-                //Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\t\tCreate Moon \nMass: " + mass + " times the earth mass, Radius: " + m.getRadius() + ", Degrees:  " + degrees + " called " + name);
             }
-            try {
-                return moons;
-            } catch (Exception error) {
-                error.printStackTrace();
-                return null;
-            }
+            return moons;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -99,41 +114,32 @@ public class Planet extends UniverseObject {
     /**
      * If the parent Planet is habitable, maybe create cities on it.
      *
-     * @param r
      * @return
      */
-    protected void createCities(Random r) {
-
-        int seed = r.nextInt();
+    protected void createCities() {
 
         try {
-            City[] cities_ = new City[RandomHandler.createIntegerFromRange(1,500,random)];
-
+            cities = new City[RandomHandler.createIntegerFromRange(1, MAX_CITIES_ON_PLANET, random)];
 
             for (int i = 0; i < cities.length; i++) {
-                try {
-//                    System.err.println("Test City " + cityIndex);
-                } catch (IndexOutOfBoundsException ex) {
-                    System.err.println("Indexes out of bounds");
-                }
-//                System.err.println("i " + i);
 
                 //TODO Hier könnte es sein, dass der Maximalwert der random zahl abgecuttet wird da der Integer wert eigentlich zu klein ist
-                City c = new City("", RandomHandler.createIntegerFromRange(0, (int) Math.pow(10, 9), random), markets[i], UniverseObjectProperties.OBJECT_CITY,seed);
+                City c = new City("", this, getMap(), random.nextInt());
+
                 cities[i] = c;
 
-                name = cities[i].getName();
-                population = cities[i].getPopulation();
+                cities[i].getName();
 
-                //Log.v(LOG_TAG_CREATE_WORLD_INFO, "\t\t\tCreate City " + name + " with a Population of " + population);
-            }
-            try {
-                cities =  cities_;
-            } catch (Exception error) {
-                error.printStackTrace();
+                population += cities[i].getPopulation();
+
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+
+    public boolean isHabitabel() {
+        return isHabitabel;
     }
 }

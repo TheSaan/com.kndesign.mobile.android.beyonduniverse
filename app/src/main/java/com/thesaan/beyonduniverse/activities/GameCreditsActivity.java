@@ -1,4 +1,4 @@
-package com.thesaan.beyonduniverse.gamecontent;
+package com.thesaan.beyonduniverse.activities;
 
 /**
  * Shows the game credits

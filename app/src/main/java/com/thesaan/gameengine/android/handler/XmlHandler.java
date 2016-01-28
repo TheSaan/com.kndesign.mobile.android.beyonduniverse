@@ -3,9 +3,6 @@ package com.thesaan.gameengine.android.handler;
 import android.content.Context;
 import android.content.res.XmlResourceParser;
 
-import com.thesaan.beyonduniverse.R;
-import com.thesaan.beyonduniverse.gamecontent.Race;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -54,15 +51,15 @@ public class XmlHandler {
 */
 
 
-        try {
-            rParser = context.getResources().getXml(R.xml.gamecontent);
-        } catch (Exception io) {
-            System.err.println(io);
-        }
+//        try {
+//            rParser = context.getResources().getXml(R.xml.gamecontent);
+//        } catch (Exception io) {
+//            System.err.println(io);
+//        }
 
-    }//constructors end
+//    }//constructors end
 
-    private void getFoods(Race race) {
+//    private void getFoods(Race race) {
 
     }
 

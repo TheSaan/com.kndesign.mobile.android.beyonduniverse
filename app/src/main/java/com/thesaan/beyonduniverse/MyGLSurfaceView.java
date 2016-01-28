@@ -5,33 +5,26 @@ import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.SystemClock;
 import android.view.MotionEvent;
-import android.opengl.*;
 import android.view.SurfaceHolder;
 
 import com.thesaan.beyonduniverse.gamecontent.world.Map;
-import com.thesaan.beyonduniverse.gamecontent.world.World;
+import com.thesaan.gameengine.android.opengl.MyGLRenderer;
 import com.thesaan.gameengine.android.handler.MathHandler;
 import com.thesaan.gameengine.android.handler.TestHandler;
-import com.thesaan.gameengine.android.opengl.MyGLRenderer;
 
 /**
  * Created by Michael on 30.12.2015.
  */
-class MyGLSurfaceView extends GLSurfaceView {
+public class MyGLSurfaceView extends GLSurfaceView {
 
-    private final MyGLRenderer mRenderer;
+    private final MyGLRenderer r;
 
     Context context;
 
-
-    World world;
-
-    Map map;
-
     //Test
     TestHandler test;
+
     //Test end
     private final float TOUCH_SCALE_FACTOR = 180.0f / 320;
     private float mPreviousX;
@@ -39,6 +32,7 @@ class MyGLSurfaceView extends GLSurfaceView {
 
     float screenWidth, screenHeight;
 
+    private int fingersOnScreen;
 
     SurfaceHolder holder;
 
@@ -56,7 +50,8 @@ class MyGLSurfaceView extends GLSurfaceView {
 
     private float touchOffset;
 
-    public MyGLSurfaceView(Context context) {
+
+    public MyGLSurfaceView(Context context, Map map) {
         super(context);
         this.context = context;
 
@@ -66,9 +61,8 @@ class MyGLSurfaceView extends GLSurfaceView {
         // Create an OpenGL ES 2.0 context
         setEGLContextClientVersion(2);
 
-        mRenderer = new MyGLRenderer();
 
-        mRenderer.setContext(context);
+        r = new MyGLRenderer(context);
 
         holder = getHolder();
 
@@ -78,15 +72,16 @@ class MyGLSurfaceView extends GLSurfaceView {
                 //TODO MessageSystem einstellen {@link https://developer.android.com/training/multiple-threads/communicate-ui.html#Handler}
             }
         };
-
-        //initialize world
-        world = new World(context);
-        mRenderer.setGalaxies(world.openGalaxies(200));
 //        surfaceHandler.post(new BuildThread(100, BuildThread.ACTION_CREATE_GALAXIES));
+        r.setTouchOffset(touchOffset);
 
+        //to provide the display dimension
+        r.setMap(map);
+
+        r.setSurfaceHandler(surfaceHandler);
 
         // Set the Renderer for drawing on the GLSurfaceView
-        setRenderer(mRenderer);
+        setRenderer(r);
 
 
         // Render the view only when there is a change in the drawing data
@@ -99,6 +94,13 @@ class MyGLSurfaceView extends GLSurfaceView {
         mDensity = density;
     }
 
+    public void setScreenDimension(int width, int height) {
+        screenHeight = height;
+        screenWidth = width;
+
+        r.setScreenDim(width, height);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent e) {
         // MotionEvent reports input details from the touch screen
@@ -107,20 +109,24 @@ class MyGLSurfaceView extends GLSurfaceView {
 
         float x = e.getX();
         float y = e.getY();
-        int[] axices = {0, 0, 0};
+        int[] axices = {0,0,0};
 
 
-        screenHeight = mRenderer.screenHeigth;
-        screenWidth = mRenderer.screenWidth;
+        screenHeight = r.screenHeigth;
+        screenWidth = r.screenWidth;
 
         switch (e.getAction()) {
             case MotionEvent.ACTION_UP:
                 mLastTouchX = x;
                 mLastTouchY = y;
+                if (r != null) {
+                    r.setFingerDown(false);
+                }
             case MotionEvent.ACTION_DOWN:
-                if (mRenderer != null) {
-                    mRenderer.setMovedDistance(x, y);
-                    mRenderer.setLastAngle((float) mRenderer.getDegreesFromTouchEvent(x, y));
+                if (r != null) {
+                    r.setMovedDistance(x, y);
+                    r.setLastAngle((float) r.getDegreesFromTouchEvent(x, y));
+                    r.setFingerDown(true);
                 }
                 //remember the position where the finger went up
                 if (mLastTouchX == 0 && mLastTouchX == 0) {
@@ -130,7 +136,13 @@ class MyGLSurfaceView extends GLSurfaceView {
                     mFirstTouchX = x;
                     mFirstTouchY = y;
                 }
+
+                r.setTouchPosition(x, y);
                 axices = getAxices(x, y);
+
+                r.setAxices(axices[0], axices[1], axices[2]);
+
+//                System.out.println("X-A: " + axices[0] + " Y-A: " + axices[1] + " Z-A: " + axices[2]);
 
                 mLastTouchX = 0;
                 mLastTouchY = 0;
@@ -143,24 +155,29 @@ class MyGLSurfaceView extends GLSurfaceView {
                 MathHandler.Vector origin = new MathHandler.Vector(x, y, 1);
 
 
-                mRenderer.setMovedDistance(dx, dy);
-                float angle = (float) mRenderer.getDegreesFromTouchEvent();
+                r.setMovedDistance(dx, dy);
+                float angle = (float) r.getDegreesFromTouchEvent();
 
 
-                origin.setScreenSize(mRenderer.screenWidth, mRenderer.screenHeigth);
+                origin.setScreenSize(r.screenWidth, r.screenHeigth);
 
-                if (mRenderer != null && isOutOfOffset(dx, dy, touchOffset)) {
+                if (r != null && isOutOfOffset(dx, dy, touchOffset)) {
                     //roteate to get the z value
                     origin.rotate3D(angle, axices[0], axices[1], axices[2], null, origin);
 
-
-                    mRenderer.setAxices(axices[0], axices[1], axices[2]);
-//                    mRenderer.setAxices(0,0,1);
-                    mRenderer.setOrigin(origin);
-//                    mRenderer.mDeltaX += deltaX;
-//                    mRenderer.mDeltaY += deltaY;
+//                    r.setAxices(1,0,0);
+//                    r.setAxices(0,1,0);
+//                    r.setAxices(0,0,1);
+                    r.setOrigin(origin);
+//                    r.mDeltaX += deltaX;
+//                    r.mDeltaY += deltaY;
                     requestRender();
                 }
+            case MotionEvent.ACTION_POINTER_DOWN:
+                fingersOnScreen = e.getPointerCount();
+
+            case MotionEvent.ACTION_POINTER_UP:
+                fingersOnScreen = 0;
         }
 
         mPreviousX = x;
@@ -190,6 +207,13 @@ class MyGLSurfaceView extends GLSurfaceView {
         }
     }
 
+    /**
+     * Get the axices depending on which screen area the finger tapped
+     *
+     * @param x
+     * @param y
+     * @return
+     */
     public int[] getAxices(float x, float y) {
         int[] axices = {0, 0, 0};
 
@@ -232,26 +256,36 @@ class MyGLSurfaceView extends GLSurfaceView {
 
         //check in which area starts the finger to move
         for (int i = 0; i < areas.length; i++) {
-            if ((x > areas[i][0] && x < areas[i][2]) && (y > areas[i][1] && y < areas[i][3])) {
+            if ((x > areas[i][0] &&
+                    x < areas[i][2]) &&
+                    y > areas[i][1] &&
+                    y < areas[i][3]) {
 
 
-                if (i == 4 || i == 6) {
+                if (i == 3 || i == 5) {
                     //X Rotation
                     axices[0] = 1;
 
-                    printTouchedArea(i);
+//                    printTouchedArea(i);
+                    System.out.println("x-axis");
                     return axices;
-                } else if (i == 2 || i == 8) {
+                } else if (i == 1 || i == 7) {
                     //Y Rotation
                     axices[1] = 1;
 
-                    printTouchedArea(i);
+//                    printTouchedArea(i);
+                    System.out.println("y-axis");
                     return axices;
-                } else if (i == 1 || i == 3 || i == 7 || i == 9) {
+                } else if (i == 0 || i == 2 || i == 6 || i == 8) {
                     //Z Rotation
                     axices[2] = 1;
 
-                    printTouchedArea(i);
+//                    printTouchedArea(i);
+                    System.out.println("z-axis");
+                    return axices;
+                } else {
+//                    printTouchedArea(i);
+                    System.out.println("n-axis");
                     return axices;
                 }
 //                 else {
@@ -271,6 +305,12 @@ class MyGLSurfaceView extends GLSurfaceView {
         return axices;
     }
 
+    /**
+     * Test Method. Prints on the console on which on the nine
+     * screen areas the finger tapped.
+     *
+     * @param i
+     */
     public void printTouchedArea(int i) {
         switch (i) {
             case 0:
@@ -307,6 +347,13 @@ class MyGLSurfaceView extends GLSurfaceView {
         }
     }
 
+    public MyGLRenderer getRenderer() {
+        return r;
+    }
+
+    /**
+     * For different background tasks. During the loading
+     */
     public class BuildThread extends Thread implements Runnable {
 
 
@@ -315,6 +362,9 @@ class MyGLSurfaceView extends GLSurfaceView {
         //is used for different kinds of run implementations
         int actionValue;
 
+        /**
+         * Load galaxy objects in background
+         */
         public final static int ACTION_CREATE_GALAXIES = 100;
 
         /**
@@ -332,11 +382,7 @@ class MyGLSurfaceView extends GLSurfaceView {
         public void run() {
             switch (action) {
                 case ACTION_CREATE_GALAXIES:
-                    world = new World(context);
-                    test.startTimer();
-                    mRenderer.setGalaxies(world.openGalaxies(actionValue));
-                    mRenderer.objectsLoaded = true;
-                    test.stopTimer("Create " + actionValue + " Galaxies in ");
+
             }
         }
     }

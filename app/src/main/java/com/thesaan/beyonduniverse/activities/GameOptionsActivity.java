@@ -1,4 +1,4 @@
-package com.thesaan.beyonduniverse.gamecontent;
+package com.thesaan.beyonduniverse.activities;
 
 /**
  * Editable options interface for the user

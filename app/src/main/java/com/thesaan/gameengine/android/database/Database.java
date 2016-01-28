@@ -814,7 +814,7 @@ COL_FIRSTNAME */
                     c.moveToNext();
                 }
 
-                //now test if the amount of entries are the same as from the backup
+                //now box_test if the amount of entries are the same as from the backup
                 if(this.countPersons() == count){
                     return DATABASE_RESTORE_PROCESS_COMPLETED;
                 }else{

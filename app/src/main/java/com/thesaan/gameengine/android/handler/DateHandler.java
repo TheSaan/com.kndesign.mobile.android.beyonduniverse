@@ -1,4 +1,5 @@
 package com.thesaan.gameengine.android.handler;
+
 import java.util.Calendar;
 import java.util.Random;
 
@@ -16,6 +17,9 @@ public class DateHandler {
     public int[] leapYears;
     public int[][] holidays;
 
+    /**
+     *
+     */
     public DateHandler() {
         Calendar cal = Calendar.getInstance();
 
@@ -29,21 +33,37 @@ public class DateHandler {
         saveLeapYearsToArray(FIRST_LEAP_YEAR, currYear);
     }
 
+    /**
+     * @param yearT
+     * @return
+     */
     private int getYearTModulo(int yearT) {
         int newYearT = (yearT + (yearT / 4)) % 7;
         return newYearT;
     }
 
+    /**
+     * @param yearH
+     * @return
+     */
     private int getYearHModulo(int yearH) {
         int newYearH = (3 - (yearH % 4)) * 2;
         return newYearH;
     }
 
+    /**
+     * @param day
+     * @return
+     */
     private int getDayModulo(int day) {
         int newDay = day % 7;
         return newDay;
     }
 
+    /**
+     * @param month
+     * @return
+     */
     private int getMonthModulo(int month) {
 
         // thats the modulo constants for each month
@@ -54,8 +74,10 @@ public class DateHandler {
             return MonthModulo[month - 1];
     }
 
-    // DE: Schaltjahr berechnen
-    // EN: Calculate if it's a Leap Year or not
+    /**
+     * @param year
+     * @return
+     */
     public boolean isLeapYear(int year) {
 
         boolean rule1 = false;
@@ -135,6 +157,10 @@ public class DateHandler {
         cache = null;
     }
 
+    /**
+     * @param yearOfBirth
+     * @return
+     */
     private int countLeapYearsFromBirthToToday(int yearOfBirth) {
         int amount = 0;
         int i = 0;
@@ -175,9 +201,11 @@ public class DateHandler {
         return amount;
     }
 
-    // counts the years from the year of birth minus the leap years until today
-    // ->this leap year value comes from the function which is named like the
-    // argument
+    /**
+     * @param year
+     * @param countLeapYearsFromBirthToToday_FUNCTION_WITH_BIRTHYEAR_ARGUMENT
+     * @return
+     */
     private int countYearsWithoutLeapYearsToToday(int year,
                                                   int countLeapYearsFromBirthToToday_FUNCTION_WITH_BIRTHYEAR_ARGUMENT) {
 
@@ -191,6 +219,12 @@ public class DateHandler {
         return amountOfYears;
     }
 
+    /**
+     * @param day
+     * @param month
+     * @param year
+     * @return
+     */
     private int countDaysToTheEndOfTheYear(int day, int month, int year) {
         int m = 0;
         int restDaysOfTheYear = 0;
@@ -212,66 +246,83 @@ public class DateHandler {
         restDaysOfTheYear += getDaysOfMonth(month, year) - d;
         return restDaysOfTheYear;
     }
+
+    /**
+     * @param day
+     * @param month
+     * @param year
+     * @return
+     */
     private int countDaysFromTodayToDate(int day, int month, int year) {
 
         int curr = 0;
-        int daysInYear=0;
+        int daysInYear = 0;
         int days = 0;
 
-        if(!(day == currDay && month == currMonth)){
-            if(currMonth<month){
+        if (!(day == currDay && month == currMonth)) {
+            if (currMonth < month) {
 
-                curr = countDaysToTheEndOfTheYear(day, month, currYear-1);
+                curr = countDaysToTheEndOfTheYear(day, month, currYear - 1);
                 curr += countDaysFromTheBeginningOfTheYear(currDay, currMonth, currYear);
 
-                if(year == currYear){
-                    if(month == currMonth){
-                        days =  day-currDay;
+                if (year == currYear) {
+                    if (month == currMonth) {
+                        days = day - currDay;
                         return days;
                     }
                 }
-            }else{
+            } else {
                 curr = countDaysToTheEndOfTheYear(currDay, currMonth, currYear);
             }
 
 
-            System.out.println("curr "+curr);
-            if(isLeapYear(currYear)){
-                daysInYear=DAYS_IN_LEAP_YEAR;
-            }else{
-                daysInYear=DAYS_IN_YEAR;
+            System.out.println("curr " + curr);
+            if (isLeapYear(currYear)) {
+                daysInYear = DAYS_IN_LEAP_YEAR;
+            } else {
+                daysInYear = DAYS_IN_YEAR;
             }
-            int to = daysInYear-curr;
-            System.out.println("to "+to);
-            days = curr-to;
-            System.out.println("days "+days);
+            int to = daysInYear - curr;
+            System.out.println("to " + to);
+            days = curr - to;
+            System.out.println("days " + days);
             return days;
-        }else{
+        } else {
             return 0;
         }
 
     }
-    private int countDaysFromTheBeginningOfTheYear(int day, int month,int year){
+
+    /**
+     * @param day
+     * @param month
+     * @param year
+     * @return
+     */
+    private int countDaysFromTheBeginningOfTheYear(int day, int month, int year) {
 
         int days;
 
-        if(isLeapYear(year)){
-            days = DAYS_IN_LEAP_YEAR-countDaysToTheEndOfTheYear(day, month, year);
-        }else{
-            days = DAYS_IN_YEAR-countDaysToTheEndOfTheYear(day, month, year);
+        if (isLeapYear(year)) {
+            days = DAYS_IN_LEAP_YEAR - countDaysToTheEndOfTheYear(day, month, year);
+        } else {
+            days = DAYS_IN_YEAR - countDaysToTheEndOfTheYear(day, month, year);
         }
         return days;
     }
-    // TODO write holiday calculation
+
+    /**
+     * TODO write holiday calculation
+     */
     private void calculateHolidays(int day, int month, int year) {
 
     }
 
-    // //////////////////////////////////////////////////////////////////////////////////
-    /*
-	 * Input year to check if its a leap year to set days in february to 28 or
-	 * 29
-	 */
+    /**
+     * @param month
+     * @param year
+     * @return
+     */
     public int getDaysOfMonth(int month, int year) {
 
         if (month > 0) {
@@ -315,21 +366,40 @@ public class DateHandler {
         }
     }
 
+    /**
+     * @param day
+     * @param month
+     * @param year
+     * @return
+     */
     public boolean isHoliday(int day, int month, int year) {
 
         return false;
     }
 
+    /**
+     * @return
+     */
     public String[] getCurrentHoliday() {
         String[] str = {};
         return str;
     }
 
+    /**
+     * @param fromYear
+     * @param toYear
+     * @return
+     */
     public int[] getLeapYearsFromTo(int fromYear, int toYear) {
         saveLeapYearsToArray(fromYear, toYear);
         return leapYears;
     }
 
+    /**
+     * @param monthIndex
+     * @param language
+     * @return
+     */
     public String getMonthName(int monthIndex, String language) {
 
         if (language == "en") {
@@ -396,6 +466,9 @@ public class DateHandler {
         }
     }
 
+    /**
+     * @return
+     */
     public int[] getDate() {
         int[] date = new int[3];
         date[0] = currDay;
@@ -404,6 +477,9 @@ public class DateHandler {
         return date;
     }
 
+    /**
+     * @return
+     */
     public int[] getTime() {
         int[] time = new int[2];
         time[0] = currHour;
@@ -412,54 +488,63 @@ public class DateHandler {
         return time;
     }
 
-    public int getDaysFromDateToDate(int dayFrom,int monthFrom,int yearFrom,int dayTo, int monthTo, int yearTo){
+    /**
+     * @param dayFrom
+     * @param monthFrom
+     * @param yearFrom
+     * @param dayTo
+     * @param monthTo
+     * @param yearTo
+     * @return
+     */
+    public int getDaysFromDateToDate(int dayFrom, int monthFrom, int yearFrom, int dayTo, int monthTo, int yearTo) {
         int days;
         int holeYearsAmount;
         int leapYearsBetweenAmount = 0;
 
 
         //
-        int yearDifference = yearTo-yearFrom;
+        int yearDifference = yearTo - yearFrom;
 
         //count the full used years
-        if(yearDifference>1){
-            holeYearsAmount = yearDifference-1;
+        if (yearDifference > 1) {
+            holeYearsAmount = yearDifference - 1;
 
-            int[] holeYears =new int[holeYearsAmount];
+            int[] holeYears = new int[holeYearsAmount];
 
             //save years between in array to check for leapyear
-            for(int i = 0;i<holeYearsAmount;i++){
-                holeYears[i] = yearTo+i;
-                if(isLeapYear(holeYears[i])){
+            for (int i = 0; i < holeYearsAmount; i++) {
+                holeYears[i] = yearTo + i;
+                if (isLeapYear(holeYears[i])) {
                     leapYearsBetweenAmount++;
                 }
             }
-        }else
+        } else
             holeYearsAmount = 0;
-        System.out.println("FROM days="+dayFrom+" month="+monthFrom+" year="+yearFrom);
-        System.out.println("TO days="+dayTo+" month="+monthTo+" year="+yearTo);
+        System.out.println("FROM days=" + dayFrom + " month=" + monthFrom + " year=" + yearFrom);
+        System.out.println("TO days=" + dayTo + " month=" + monthTo + " year=" + yearTo);
 
-        System.out.println("\nDays counting\n+To the end of the year="+countDaysToTheEndOfTheYear(dayFrom, monthFrom, yearFrom)+
-                "\n+hole years="+holeYearsAmount+"*"+DAYS_IN_YEAR+"="+holeYearsAmount*DAYS_IN_YEAR+
-                "\n+leap years between="+leapYearsBetweenAmount+
-                "\n+from beginning of this year="+countDaysFromTheBeginningOfTheYear(dayTo, monthTo, yearTo));
-
-
-        days =  holeYearsAmount*DAYS_IN_YEAR+leapYearsBetweenAmount;
+        System.out.println("\nDays counting\n+To the end of the year=" + countDaysToTheEndOfTheYear(dayFrom, monthFrom, yearFrom) +
+                "\n+hole years=" + holeYearsAmount + "*" + DAYS_IN_YEAR + "=" + holeYearsAmount * DAYS_IN_YEAR +
+                "\n+leap years between=" + leapYearsBetweenAmount +
+                "\n+from beginning of this year=" + countDaysFromTheBeginningOfTheYear(dayTo, monthTo, yearTo));
 
 
-        if(yearTo == yearFrom && monthTo == monthFrom && dayTo == dayFrom){
+        days = holeYearsAmount * DAYS_IN_YEAR + leapYearsBetweenAmount;
+
+
+        if (yearTo == yearFrom && monthTo == monthFrom && dayTo == dayFrom) {
             days = 0;
         }
-        if(yearTo != yearFrom && monthTo != monthFrom && dayTo != dayFrom)
-            days +=countDaysFromTheBeginningOfTheYear(dayTo, monthTo, yearTo);
+        if (yearTo != yearFrom && monthTo != monthFrom && dayTo != dayFrom)
+            days += countDaysFromTheBeginningOfTheYear(dayTo, monthTo, yearTo);
         //if the yearFrom is a past year
-        if(yearFrom < currYear){
+        if (yearFrom < currYear) {
             days += countDaysToTheEndOfTheYear(dayFrom, monthFrom, yearFrom);
         }
 
 
-        System.out.println("\n\nDays:  "+days);
+        System.out.println("\n\nDays:  " + days);
 
         return days;
     }
@@ -476,7 +561,7 @@ public class DateHandler {
      * @param days
      * @return
      */
-    public int[] getFutureDateWithDays(int day,int month,int year,int days, boolean printInConsole){
+    public int[] getFutureDateWithDays(int day, int month, int year, int days, boolean printInConsole) {
 
         //counts the month
         int i;
@@ -488,33 +573,33 @@ public class DateHandler {
         //this amount to get the amount of
         //needed days and at the same time
         //this is the day in the last month!
-        int leftRequiredDays=0;
+        int leftRequiredDays = 0;
 
         //the days of the current month
-        int amount = getDaysOfMonth(month, year)-day;
+        int amount = getDaysOfMonth(month, year) - day;
 
         //starting with next month because
         //we count only the rest of the
         //days of the current month
-        int startMonth = month+1;
+        int startMonth = month + 1;
 
-        if(printInConsole)
-            System.out.println("Starte mit "+amount+" Tagen vom "+getMonthName(month, "de")+"...");
+        if (printInConsole)
+            System.out.println("Starte mit " + amount + " Tagen vom " + getMonthName(month, "de") + "...");
 
-        for(i = startMonth;amount<days;i++){
+        for (i = startMonth; amount < days; i++) {
 
             //check when the end of the year is reached
             int daysInNextMonth;
-            if(i<13){
-                daysInNextMonth =getDaysOfMonth(i, year);
-            }else{
+            if (i < 13) {
+                daysInNextMonth = getDaysOfMonth(i, year);
+            } else {
                 i = 1;
                 year++;
-                daysInNextMonth =getDaysOfMonth(i, year);
+                daysInNextMonth = getDaysOfMonth(i, year);
             }
 
 
-            if(!(amount+daysInNextMonth > days)){
+            if (!(amount + daysInNextMonth > days)) {
 
 
                 //if the last month fits exactly
@@ -523,37 +608,39 @@ public class DateHandler {
                 //means the last
                 leftRequiredDays = daysInNextMonth;
 
-                if(printInConsole)
-                    System.out.println("Füge an Gesamttage("+amount+") die Tage vom "+getMonthName(i, "de")+"("+daysInNextMonth+") an "+
+                if (printInConsole)
+                    System.out.println("Füge an Gesamttage(" + amount + ") die Tage vom " + getMonthName(i, "de") + "(" + daysInNextMonth + ") an " +
                             "\n"
-                            + "und erhalte: "+(amount+daysInNextMonth)+" Tage");
+                            + "und erhalte: " + (amount + daysInNextMonth) + " Tage");
 
-                amount+=daysInNextMonth;
+                amount += daysInNextMonth;
                 finalMonth = i;
-            }else{
-                leftRequiredDays = days-amount;
+            } else {
+                leftRequiredDays = days - amount;
 
-                if(printInConsole)
-                    System.out.println("ÜBERSCHRITTEN, addiere "+leftRequiredDays+" Tage aus "+getMonthName(i, "de")+"\n"
-                            + "und addiere "+leftRequiredDays+" Tage zu "+amount+"\n"
-                            + "was dann "+(amount+leftRequiredDays)+" ergibt");
-                amount+=leftRequiredDays;
+                if (printInConsole)
+                    System.out.println("ÜBERSCHRITTEN, addiere " + leftRequiredDays + " Tage aus " + getMonthName(i, "de") + "\n"
+                            + "und addiere " + leftRequiredDays + " Tage zu " + amount + "\n"
+                            + "was dann " + (amount + leftRequiredDays) + " ergibt");
+                amount += leftRequiredDays;
                 finalMonth = i;
 
             }
 
         }
-        int[] date = {leftRequiredDays,finalMonth,year};
+        int[] date = {leftRequiredDays, finalMonth, year};
         return date;
     }
+
     /**
      * Calculates the date in the future from
      * today with the amount of days
      * in the argument
+     *
      * @param days
      * @return
      */
-    public int[] getFutureDateFromToday(int days){
+    public int[] getFutureDateFromToday(int days) {
 
         //counts the month
         int i;
@@ -563,7 +650,7 @@ public class DateHandler {
         //this amount to get the amount of
         //needed days and at the same time
         //this is the day in the last month!
-        int leftRequiredDays=0;
+        int leftRequiredDays = 0;
 
         //the days of the current month
         int amount = currDay;
@@ -571,38 +658,50 @@ public class DateHandler {
         //starting with next month because
         //we count only the rest of the
         //days of the current month
-        int startMonth = currMonth+1;
+        int startMonth = currMonth + 1;
 
-        for(i = startMonth;amount<days;i++){
-            int daysInNextMonth =getDaysOfMonth(i, currYear);
-            if(!(amount+daysInNextMonth > days)){
-                amount+=daysInNextMonth;
+        for (i = startMonth; amount < days; i++) {
+            int daysInNextMonth = getDaysOfMonth(i, currYear);
+            if (!(amount + daysInNextMonth > days)) {
+                amount += daysInNextMonth;
 
                 //if the last month fits exactly
                 //in the range, set the amount
                 //of its days as day of the month
                 //means the last
                 leftRequiredDays = daysInNextMonth;
-            }else{
-                leftRequiredDays = days-amount;
-                amount+=leftRequiredDays;
+            } else {
+                leftRequiredDays = days - amount;
+                amount += leftRequiredDays;
             }
         }
-        int[] date = {leftRequiredDays,i,currYear};
+        int[] date = {leftRequiredDays, i, currYear};
         return date;
     }
 
+    /**
+     * @param day
+     * @param month
+     * @param year
+     * @return
+     */
     public int getAgeInYears(int day, int month, int year) {
         int toToday = countDaysFromTheBeginningOfTheYear(currDay, currMonth, currYear);
         int toBirthDate = countDaysFromTheBeginningOfTheYear(day, month, currYear);
 
-        if(toToday >= toBirthDate){
-            return currYear-year;
-        }else{
-            return currYear-(year+1);
+        if (toToday >= toBirthDate) {
+            return currYear - year;
+        } else {
+            return currYear - (year + 1);
         }
     }
 
+    /**
+     * @param day
+     * @param month
+     * @param year
+     * @return
+     */
     public int getAgeInDays(int day, int month, int year) {
         // variables for the actual formula
         int amountOfLeapYears = countLeapYearsFromBirthToToday(year);
@@ -615,7 +714,7 @@ public class DateHandler {
         // System.out.println("Days in First Year 1:  "+DaysInFirstYear);
 
 		/*
-		 * amountOfYears is taken -2 because the start and end year are not a
+         * amountOfYears is taken -2 because the start and end year are not a
 		 * full year. even if its the 31st of december it calculates the first
 		 * and last year separately
 		 */
@@ -629,7 +728,7 @@ public class DateHandler {
                     - countDaysToTheEndOfTheYear(currDay, currMonth, currYear);
         }
         // System.out.println("Days in Last Year 1:  "+ DaysInLastYear);
-		/*
+        /*
 		 * Example of the calculation The birth date is 1st August 1990 or
 		 * 1.8.1990: <DaysInFirstYear>: Days of Sep(30)+Oct(31)+Nov(30)+Dec(31)+
 		 *
@@ -658,6 +757,12 @@ public class DateHandler {
         return days;
     }
 
+    /**
+     * @param day
+     * @param month
+     * @param year
+     * @return
+     */
     public int getAgeInHours(int day, int month, int year) {
         int days = getAgeInDays(day, month, year);
         int h = 24;
@@ -670,6 +775,12 @@ public class DateHandler {
         return hours;
     }
 
+    /**
+     * @param day
+     * @param month
+     * @param year
+     * @return
+     */
     public int getAgeInMinutes(int day, int month, int year) {
         int days = getAgeInDays(day, month, year);
         int m = 24 * 60;
@@ -682,6 +793,12 @@ public class DateHandler {
         return minutes;
     }
 
+    /**
+     * @param day
+     * @param month
+     * @param year
+     * @return
+     */
     public int getAgeInSeconds(int day, int month, int year) {
         int days = getAgeInDays(day, month, year);
         int s = 24 * 3600;
@@ -695,6 +812,12 @@ public class DateHandler {
         return seconds;
     }
 
+    /**
+     * @param day
+     * @param month
+     * @param year
+     * @return
+     */
     public long getAgeInMilliseconds(int day, int month, int year) {
         int days = getAgeInDays(day, month, year);
         long mills = 24 * 3600000;
@@ -706,6 +829,15 @@ public class DateHandler {
         return milliseconds;
     }
 
+    /**
+     * Gets the weekday
+     *
+     * @param day
+     * @param month
+     * @param year
+     * @param language
+     * @return
+     */
     public String getDayOfWeekAt(int day, int month, int year, String language) {
 		/*
 		 * Get the century, this calculation makes sure that the calender can
@@ -794,8 +926,14 @@ public class DateHandler {
         return dayOfWeek;
     }
 
-    // Assumption method
-	/* This Method prints every Data you can calculate by the given date */
+    /**
+     * This Method prints every Data you can calculate by the given date
+     *
+     * @param day
+     * @param month
+     * @param year
+     * @param language
+     */
     public void printAgeInAllFormats(int day, int month, int year,
                                      String language) {
 		/*
@@ -829,12 +967,25 @@ public class DateHandler {
         }
     }
 
+    /**
+     * TODO add splitting without dots
+     * Creates an intger array of day, month and year
+     *
+     * @param dateString
+     * @return
+     */
     public int[] getDateInSplittedFormatAsInteger(String dateString) {
         String[] date = dateString.split("\\.");
         int[] dateParts = {Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2])};
         return dateParts;
     }
 
+    /**
+     * creates a list of every date in this year
+     *
+     * @param year
+     * @return
+     */
     public String[] getEveryDateOfTheYear(int year) {
 
 
@@ -853,16 +1004,15 @@ public class DateHandler {
 
         for (int i = 0; i < numberOfDays; i++) {
             //add zero if less than ten
-            if(d<10)
-                mDay = "0"+d + ".";
+            if (d < 10)
+                mDay = "0" + d + ".";
             else
-                mDay = d +".";
+                mDay = d + ".";
 
-            if(m<10)
-                mMonth = "0"+m + ".";
+            if (m < 10)
+                mMonth = "0" + m + ".";
             else
-            mMonth = m + ".";
-
+                mMonth = m + ".";
 
 
             date = mDay + mMonth + year;
@@ -880,14 +1030,29 @@ public class DateHandler {
         return dates;
     }
 
-    public String unformatDate(String formattedDate){
+    /**
+     * Creates from e.g 01.01.2015 a 01012015 format
+     *
+     * @param formattedDate
+     * @return
+     */
+    public String unformatDate(String formattedDate) {
         String[] tmpDate = formattedDate.split("\\.");
 
-        formattedDate = tmpDate[0]+tmpDate[1]+tmpDate[2];
+        formattedDate = tmpDate[0] + tmpDate[1] + tmpDate[2];
 
         return formattedDate;
     }
-    public String[] createRandomBirthdays(int startYear,int endYear,int amount) {
+
+    /**
+     * A box_test method to create a number of random birthdates
+     *
+     * @param startYear
+     * @param endYear
+     * @param amount
+     * @return
+     */
+    public String[] createRandomBirthdays(int startYear, int endYear, int amount) {
 
         Random rand = new Random();
 
@@ -900,7 +1065,7 @@ public class DateHandler {
         //current birthday
         String bDate;
 
-        for(int i = 0;i< amount;i++) {
+        for (int i = 0; i < amount; i++) {
             //create a random year in the given range
             int randYear = RandomHandler.createIntegerFromRange(startYear, endYear, rand);
 
@@ -908,7 +1073,7 @@ public class DateHandler {
             nDays = getEveryDateOfTheYear(randYear);
 
             //get one day of this year
-            bDate = nDays[RandomHandler.createIntegerFromRange(1,nDays.length-1,rand)];
+            bDate = nDays[RandomHandler.createIntegerFromRange(1, nDays.length - 1, rand)];
 
             //add this date to the final array
             bDadys[i] = bDate;
@@ -920,23 +1085,23 @@ public class DateHandler {
         return bDadys;
     }
 
-        public int createAgeFromFromFormattedDate(String date){
-            int age;
-            String day,month,year;
+    public int createAgeFromFromFormattedDate(String date) {
+        int age;
+        String day, month, year;
 
-            day = date.substring(0, 2);
-            month = date.substring(3, 5);
-            year = date.substring(6, 10);
-
-
-            int d = Integer.parseInt(day);
-            int m = Integer.parseInt(month);
-            int y = Integer.parseInt(year);
+        day = date.substring(0, 2);
+        month = date.substring(3, 5);
+        year = date.substring(6, 10);
 
 
-            age = getAgeInYears(d, m, y);
-            return age;
-        }
+        int d = Integer.parseInt(day);
+        int m = Integer.parseInt(month);
+        int y = Integer.parseInt(year);
+
+
+        age = getAgeInYears(d, m, y);
+        return age;
+    }
 
 
 }

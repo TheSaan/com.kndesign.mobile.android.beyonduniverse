@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import com.thesaan.beyonduniverse.MainActivity;
 import com.thesaan.beyonduniverse.gamecontent.Drawables;
 import com.thesaan.beyonduniverse.gamecontent.Race;
 import com.thesaan.gameengine.android.handler.XmlHandler;
@@ -83,7 +82,7 @@ public class Item {
             RES_WATER,RES_OIL
     };
 
-    public static File ITEM_TYPE_IMAGE_FOLDER = MainActivity.internalDir;
+//    public static File ITEM_TYPE_IMAGE_FOLDER = MainActivity.internalDir;
 
 
     private boolean illegality = false;

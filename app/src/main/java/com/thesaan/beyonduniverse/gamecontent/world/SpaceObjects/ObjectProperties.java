@@ -8,8 +8,10 @@ import com.thesaan.gameengine.android.opengl.shapes.Vertex;
  */
 public interface ObjectProperties {
 
-    //an random choosen value to multiply the degrees of the star
+    //an random choosen value to multiply the temperature of the star
     float ENERGY_MULTIPLIER = 5.56f;
+
+
     void onRotate(float angle, int xAxis, int yAxis, int zAxis);
     void onMove(float x, float y, float z);
     void onZoom(float factor);
@@ -17,7 +19,7 @@ public interface ObjectProperties {
     float getY();
     float getZ();
     float getScope();
-    float getDegrees();
+    float getTemperature();
     float getRadius();
     float getMass();
     float getVolume();
@@ -25,11 +27,6 @@ public interface ObjectProperties {
     String getName();
     long getPopulation();
     int getType();
-    SolarSystem[] getSolarsystems();
-    Planet[] getPlanets();
-    Moon[] getMoons();
-    Star[] getStars();
-    City[] getCities();
     Vertex getVertex();
 
     void setX(float x);

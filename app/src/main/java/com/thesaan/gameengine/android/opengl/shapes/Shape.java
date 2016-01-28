@@ -2,6 +2,7 @@ package com.thesaan.gameengine.android.opengl.shapes;
 
 import android.opengl.GLES20;
 
+import com.thesaan.gameengine.android.handler.MathHandler;
 import com.thesaan.gameengine.android.opengl.MyGLRenderer;
 
 import java.nio.ByteBuffer;
@@ -15,6 +16,14 @@ public class Shape {
 
     private FloatBuffer vertexBuffer;
 
+
+    int screenWidth;
+    int screenHeight;
+
+    //for the own MathHandler class
+    public MathHandler.Vector mVector;
+
+
     // number of coordinates per vertex in this array
     public static final int COORDS_PER_VERTEX = 3;
 
@@ -22,9 +31,7 @@ public class Shape {
     private float posY;
     private float posZ;
 
-    static float pointCoords[] = {   // in counterclockwise order:
-            0.0f, 0.622008459f, 0.0f // bottom right
-    };
+    float pointCoords[];
 
 //    private final String vertexShaderCode =
 //            "attribute vec4 vPosition;" +
@@ -66,6 +73,21 @@ public class Shape {
     int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
 
     public Shape() {
+
+    }
+
+    /**
+     * A default {@link Shape}
+     */
+    public Shape(float[] map_coordinates) {
+
+
+//        pointCoords = new float[map_coordinates.length];
+        pointCoords = map_coordinates;
+//        copyCoordinates(pointCoords, map_coordinates);
+        vertexCount = pointCoords.length / COORDS_PER_VERTEX;
+
+
         init();
     }
 
@@ -77,16 +99,28 @@ public class Shape {
      * @param z
      */
     public Shape(float x, float y, float z) {
-
-
         posX = x;
         posY = y;
         posZ = z;
+
+
+        pointCoords = new float[]{x, y, z};
+        vertexCount = pointCoords.length / COORDS_PER_VERTEX;
+
         init();
     }
 
-
+    /**
+     * @param mvpMatrix
+     * @param shape     <p>{@link GLES20#GL_POINTS}</p>
+     *                  <p>{@link GLES20#GL_TRIANGLE_FAN}</p>
+     *                  <p>{@link GLES20#GL_TRIANGLE_STRIP}</p>
+     *                  <p>{@link GLES20#GL_TRIANGLES}</p>
+     *                  <p>{@link GLES20#GL_LINES}</p>
+     */
     public void draw(float[] mvpMatrix, int shape) {
+        updateBuffer();
+
         GLES20.glUseProgram(mProgram);
 
         // get handle to vertex shader's vPosition member
@@ -119,6 +153,9 @@ public class Shape {
         GLES20.glDisableVertexAttribArray(mPositionHandle);
     }
 
+    /**
+     * Set the coordinates buffer. Also call for re-init
+     */
     public void init() {
         // initialize vertex byte buffer for shape coordinates
         ByteBuffer bb = ByteBuffer.allocateDirect(
@@ -152,10 +189,92 @@ public class Shape {
         GLES20.glLinkProgram(mProgram);
     }
 
+    /**
+     * @param current
+     * @param coords
+     */
     public void copyCoordinates(float[] current, float[] coords) {
         int length = coords.length;
         for (int i = 0; i < length; i++) {
             current[i] = coords[i];
+        }
+    }
+
+
+    /**
+     * @return
+     */
+    public float[] getPointCoords() {
+        return pointCoords;
+    }
+
+    public void setPointCoords(float[] coords) {
+        this.pointCoords = coords;
+    }
+
+
+    /**
+     * Setup the vertexBuffer with the new Coordinates
+     */
+    public void updateBuffer() {
+
+        //reset pointCoords from Mathhandler.Vektor
+//        mVector.definePositionAsScreenPercentage();
+
+//        applyVectorTranslation();
+
+        // initialize vertex byte buffer for shape coordinates
+        ByteBuffer bb = ByteBuffer.allocateDirect(
+                // (number of coordinate values * 4 bytes per float)
+                pointCoords.length * 4);
+        // use the device hardware's native byte order
+        bb.order(ByteOrder.nativeOrder());
+
+//        vertexBuffer = null;
+
+        // create a floating point buffer from the ByteBuffer
+        vertexBuffer = bb.asFloatBuffer();
+        // add the coordinates to the FloatBuffer
+        vertexBuffer.put(pointCoords);
+        // set the buffer to read the first coordinate
+        vertexBuffer.position(0);
+    }
+
+
+    /**
+     * Set the current screen dimension
+     *
+     * @param width
+     * @param height
+     */
+    public void setDimension(int width, int height) {
+        screenWidth = width;
+        screenHeight = height;
+    }
+
+    public void convertToScreenPercentage() {
+        MathHandler.Matrix m = new MathHandler.Matrix();
+        m.setScreenDimension(screenWidth, screenHeight);
+
+        for (int i = 0; i < pointCoords.length; i += 3) {
+            for (int k = 0; k < 3; k++) {
+
+                switch (k) {
+                    case 0://x
+                        pointCoords[i + k] = (float) m.getWidthPercentage(
+                                pointCoords[i + k], screenWidth) / 100;
+                        break;
+                    case 1://y
+                        pointCoords[i + k] = (float) m.getHeightPercentage(
+                                pointCoords[i + k], screenHeight) / 100;
+                        break;
+                    case 2://z
+                        pointCoords[i + k] = (float) m.getWidthPercentage(
+                                pointCoords[i + k], screenWidth * 2) / 100;
+                        break;
+                }
+
+            }
         }
     }
 }

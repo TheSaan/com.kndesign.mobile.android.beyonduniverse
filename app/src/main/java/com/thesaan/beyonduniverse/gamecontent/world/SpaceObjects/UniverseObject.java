@@ -1,20 +1,15 @@
 package com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects;
 
-import android.graphics.Bitmap;
-import android.graphics.Paint;
-import android.opengl.Matrix;
-import android.widget.ImageView;
-
 import com.thesaan.beyonduniverse.gamecontent.Drawables;
-import com.thesaan.beyonduniverse.gamecontent.economy.Market;
+import com.thesaan.beyonduniverse.gamecontent.Race;
+import com.thesaan.beyonduniverse.gamecontent.world.Map;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
 import com.thesaan.gameengine.android.DB_Settings;
-import com.thesaan.gameengine.android.drawables.CoordinateSystem3D;
 import com.thesaan.gameengine.android.handler.MathHandler;
 import com.thesaan.gameengine.android.handler.RandomHandler;
 import com.thesaan.gameengine.android.opengl.shapes.Vertex;
-import com.thesaan.gameengine.android.ui.StarMapSurface;
 
+import java.text.DecimalFormat;
 import java.util.Random;
 
 /**
@@ -22,183 +17,167 @@ import java.util.Random;
  */
 public class UniverseObject implements UniverseObjectProperties, ObjectProperties {
 
-    /**
-     * The actual image resource
-     */
-    Bitmap mBitmap;
-    /**
-     * To choose the correct star bitmap
-     */
-    Paint starPaint;
-
-    ImageView mImageView;
-
-    SolarSystem[] solarSystems;
-    Star[] stars;
-    Planet[] planets;
-    Moon[] moons;
-    City[] cities;
-    //all on the planet
-    Market[] markets;
-    //for each city
-    Market market;
-
     Vertex opengl_position;
 
+    float mapWidth, mapHeight;
+
+    public int race;
 
     public long population;
     public float radius;
     public float scope;
     public float mass;
-    public float degrees;
+    public float temperature;
     public float volume;
     public String name;
     public int type;
     public int planetType;
     public MathHandler.Vector myPosition;
     public UniverseObject parent;
-    public String typeName;
 
     //stored seed of this object
     protected int myRandomSeed;
     //use the private seed;
-    protected Random random;
+    public Random random;
 
+    /**
+     * stores the position in the position draw array for opengl
+     */
+    int indexPosition;
+    /**
+     * <p>
+     * Defines a small area in virtual space where
+     * this object stands.
+     * This variable is needed to get just a part
+     * of the current object array which has to be drawn
+     * onto the surface which reduces the processing
+     * requirements.
+     * </p>
+     * <p>The Quadrants can be from 0 to 63 (4^3)</p>
+     */
+    public int positionQuadrant;
+
+    /**
+     * Defines a virtual Position relative to the real
+     * position on Screen in relation to the kind of object
+     */
+    public String virtualPosition;
+
+    public Map map;
 
     /*----------------------------------------CONSTRUCTORS-----------------------------------*/
-    public UniverseObject() {
-
-    }
 
     /**
-     * To create a city
+     * For creating the world object and initializing the map
      */
-    public UniverseObject(String name, long population, Market market, int type, int seed) {
+    public UniverseObject(int type, int seed) {
 
-        myRandomSeed = seed;
-
-        random = new Random(myRandomSeed);
+        random = new Random(seed);
 
         this.type = type;
-        this.market = market;
-
-        //name set
-        if (name != "")
-            this.name = name;
-        else
-            setRandomName(random);
-        this.population = population;
-
-    }
-
-
-    /**
-     * To create Stars, asteroids, comets.
-     *
-     * @param name     If the name is empty, an unique random name will be set to this object.
-     *                 Please note, that only objects should have explicit names which are inside the story.
-     * @param position The universal position of the object.
-     * @param mass
-     * @param degrees
-     * @param type
-     * @param seed     seed based random object
-     */
-    public UniverseObject(String name, MathHandler.Vector position, float mass, float degrees, int type, int seed) {
-
-        myRandomSeed = seed;
-
-        random = new Random(myRandomSeed);
-
-        //set the stars color
-        starPaint = new Paint();
-
-        this.type = type;
-
-        if (isStar())
-            setRandomColor(random);
-
-        //name set
-        if (name != "")
-            this.name = name;
-        else
-            setRandomName(random);
-
-        myPosition = position;
-
-        this.degrees = degrees;
-        this.mass = mass;
-        this.radius = setRandomRadius(random);
-        scope = 2f * radius * (float) Math.PI;
-
     }
 
     /**
-     * This one is only for creating solar systems.
-     *
-     * @param name
-     * @param radius
-     * @param type
+     * Create all Universe Children
      */
-    public UniverseObject(String name, UniverseObject parent, float radius, int type, int seed) {
+    public UniverseObject(String name, int type, UniverseObject parent, Map map, int seed) {
 
         myRandomSeed = seed;
 
-        random = new Random(myRandomSeed);
+        random = new Random(seed);
 
-        System.out.println("Solarsystem Constructor");
         this.parent = parent;
-        //name set
-        if (name != "")
-            this.name = name;
-        else
-            setRandomName(random);
 
-        setType(type);
+        this.race = parent.race;
 
+        this.map = map;
 
-        myPosition = setRandomPosition(random);
+        this.type = type;
 
-        this.radius = radius;
+        if (this.map != null) {
+            setScreenDimension(map.getScreenWidth(), map.getScreenHeight());
+        } else {
+            System.err.println("Map Object null in " + getTypeName() + " " + getName() + " Constructor UniverseObject.class");
+        }
 
+        //init different types of this class (Galaxy, Solarsystem, ...)
+        int error = init();
+
+        //if every property was set correct
+        if (error == 0) {
+            //set name
+            if (name == "") {
+                setRandomName();
+            } else {
+                this.name = name;
+            }
+
+        /*
+            - todo Market init
+            - todo Planet init
+            - todo Asteroid init
+            - todo Comet init
+            - todo Solarsystem init
+            - todo Moon init
+         */
+        }
     }
 
-    /**
-     * This one is only for creating galaxies. The position gets calculated internally
-     *
-     * @param name
-     * @param type
-     */
-    public UniverseObject(String name, int type, int seed) {
-
-        myRandomSeed = seed;
-
-        random = new Random(myRandomSeed);
-
-        //type set
-        if (type == OBJECT_GALAXY)
-            this.type = type;
-        else
-            System.err.println("Tried to create " + getTypeName() + " with Galaxy constructor!");
-
-        //name set
-        if (name != "")
-            this.name = name;
-        else
-            setRandomName(random);
-
-
-        this.volume = UniverseObject.setRandomVolume(type,random);
-
-        this.radius = (float) Math.pow(volume, (1.0 / 3.0));
-
-        //position set
-        myPosition = setRandomPosition(random);
-
-        setVertexPosition();
-
-    }
 
     /*----------------------------------------SETTERS-----------------------------------*/
+
+    /**
+     * A method that includes every random property
+     * setter method which need all objects
+     */
+    public int setRandomProperties() {
+        try {
+            if (type != OBJECT_GALAXY && type != OBJECT_WORLD) {
+                setRandomMass();
+                setRandomTemperature();
+                setRandomRadius();
+                setRandomVolume();
+            }
+            setRandomPosition();
+            return 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 1;
+        }
+    }
+
+    public int init() {
+        switch (type) {
+            case OBJECT_UNIVERSE:
+
+                return 0;
+            case OBJECT_GALAXY:
+
+                return setRandomProperties();
+            case OBJECT_SOLARSYSTEM:
+
+                return 0;
+            case OBJECT_STAR:
+                return setRandomProperties();
+            case OBJECT_PLANET:
+                setRandomPlanetPosition();
+                return setRandomProperties();
+            case OBJECT_MOON:
+                setRandomMoonPosition();
+                return setRandomProperties();
+            case OBJECT_CITY:
+                setRandomPopulation();
+                return 0;
+            case OBJECT_COMET:
+                return setRandomProperties();
+            case OBJECT_ASTEROID:
+                return setRandomProperties();
+            default:
+                return 1;
+        }
+
+
+    }
 
     public void setType(int type) {
         this.type = type;
@@ -209,30 +188,28 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
     }
 
     /**
-     * If the object is a star, choose its color for selecting the corrent bitmap then.
-     */
-    public void setRandomColor(Random r) {
-        starPaint.setColor(getColor(RandomHandler.createIntegerFromRange(0, 3, r) + 101010));
-    }
-
-    /**
      * Creates a random image out of the arrays filled with the ids of the object drawables.
      *
      * @return
      */
-    public int getRandomImageResource(Random r) {
+    public int getRandomImageResource() {
         if (isStar()) {
-            return Drawables.drawablesStars[RandomHandler.createIntegerFromRange(0, Drawables.drawablesStars.length, r)];
+            return Drawables.drawablesStars[RandomHandler.createIntegerFromRange(
+                    0, Drawables.drawablesStars.length, random)];
         } else if (isPlanet()) {
-            return Drawables.drawablesPlanets[RandomHandler.createIntegerFromRange(0, Drawables.drawablesPlanets.length, r)];
+            return Drawables.drawablesPlanets[RandomHandler.createIntegerFromRange(
+                    0, Drawables.drawablesPlanets.length, random)];
         } else if (isMoon()) {
-            return Drawables.drawablesMoons[RandomHandler.createIntegerFromRange(0, Drawables.drawablesMoons.length, r)];
+            return Drawables.drawablesMoons[RandomHandler.createIntegerFromRange(
+                    0, Drawables.drawablesMoons.length, random)];
         } else if (isAsteroid()) {
-            return Drawables.drawablesAsteroids[RandomHandler.createIntegerFromRange(0, Drawables.drawablesAsteroids.length, r)];
+            return Drawables.drawablesAsteroids[RandomHandler.createIntegerFromRange(
+                    0, Drawables.drawablesAsteroids.length, random)];
         } else if (isComet()) {
-            return Drawables.drawablesComets[RandomHandler.createIntegerFromRange(0, Drawables.drawablesComets.length, r)];
+            return Drawables.drawablesComets[RandomHandler.createIntegerFromRange(
+                    0, Drawables.drawablesComets.length, random)];
         } else if (isGalaxy()) {
-            return Drawables.drawablesGalaxies[RandomHandler.createIntegerFromRange(0, Drawables.drawablesGalaxies.length, r)];
+            return Drawables.drawablesGalaxies[RandomHandler.createIntegerFromRange(0, Drawables.drawablesGalaxies.length, random)];
         } else {
             return 0;
         }
@@ -244,37 +221,40 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
      *
      * @return
      */
-    public static int setRandomPlanetType(Random r) {
-        return RandomHandler.createIntegerFromRange(100010, 100012, r);
+    public void setRandomPlanetType() {
+        setRandomTemperature();
+        planetType = RandomHandler.createIntegerFromRange(
+                PLANET_TYPE_GRASS, PLANET_TYPE_SNOW, random);
     }
+
 
     /**
      * Sets a random mass value for either galaxies or solarsystems.
      * This value is actual to get the side lengths of the object for
-     * relating the new positions of its children when open it {@link StarMapSurface.GameThread#openObject()}
+     * relating the new positions of its children when open it {@link
+     * //     * StarMapSurface.GameThread#openObject()}
      *
-     * @param type
      * @return
      */
-    public static float setRandomVolume(int type, Random r) {
+    public float setRandomVolume() {
         float x, y, z, h, i, j;
         switch (type) {
             case OBJECT_GALAXY: {
-                x = GALAXY_MAX_X;
-                y = GALAXY_MAX_Y;
-                z = GALAXY_MAX_Z;
-                h = GALAXY_MIN_X;
-                i = GALAXY_MIN_Y;
-                j = GALAXY_MIN_Z;
+                x = mapWidth;
+                y = mapHeight;
+                z = mapWidth;
+                h = 0;
+                i = 0;
+                j = 0;
                 break;
             }
             case OBJECT_SOLARSYSTEM: {
-                x = SOLARSYSTEM_MAX_X;
-                y = SOLARSYSTEM_MAX_Y;
-                z = SOLARSYSTEM_MAX_Z;
-                h = SOLARSYSTEM_MIN;
-                i = SOLARSYSTEM_MIN;
-                j = SOLARSYSTEM_MIN;
+                x = mapWidth;
+                y = mapHeight;
+                z = mapWidth;
+                h = 0;
+                i = 0;
+                j = 0;
                 break;
             }
             default:
@@ -285,59 +265,108 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
                 i = 0;
                 j = 0;
         }
-        x = RandomHandler.createFloatFromRange(h, x, r);
-        y = RandomHandler.createFloatFromRange(i, y, r);
-        z = RandomHandler.createFloatFromRange(j, z, r);
+        x = RandomHandler.createFloatFromRange(h, x, random);
+        y = RandomHandler.createFloatFromRange(i, y, random);
+        z = RandomHandler.createFloatFromRange(j, z, random);
         return x * y * z;
     }
 
     /**
      * Sets a random temperature value for either stars, planets or moons
      *
-     * @param type
      * @return
      */
-    public static float setRandomTemperature(int type, Random r) {
+    public void setRandomTemperature() {
 
         switch (type) {
             case OBJECT_STAR: {
-                return Math.round(RandomHandler.createFloatFromRange(4 * (float) Math.pow(10, 6), 23 * (float) Math.pow(10, 6), r));
+                temperature = Math.round(RandomHandler.createFloatFromRange(
+                        4 * (float) Math.pow(10, 6), 23 * (float) Math.pow(10, 6), random));
             }
             case OBJECT_PLANET: {
-                return Math.round(RandomHandler.createFloatFromRange(-250, 500, r));
+                temperature = Math.round(RandomHandler.createFloatFromRange(-250, 500, random));
             }
             case OBJECT_MOON: {
-                return Math.round(RandomHandler.createFloatFromRange(-250, 30, r));
+                temperature = Math.round(RandomHandler.createFloatFromRange(-250, 5, random));
             }
             default:
-                return Math.round(25);
+                temperature = Math.round(15);
         }
 
+    }
+
+    public void setRandomPopulation() {
+        population = RandomHandler.createIntegerFromRange(50, 35000000, random);
     }
 
     /**
      * Sets a random mass value for either stars, planets or moons
      *
-     * @param type
      * @return
      */
-    public static float setRandomMass(int type, Random r) {
-        float mass;
+    public void setRandomMass() {
         switch (type) {
             case OBJECT_STAR: {
-                return RandomHandler.createFloatFromRange(4f * (float) Math.pow(10f, 6f), 23f * (float) Math.pow(10f, 6f), r);
+                mass = RandomHandler.createFloatFromRange(
+                        4f * (float) Math.pow(10f, 6f), 23f * (float) Math.pow(10f, 6f), random);
             }
             case OBJECT_PLANET: {
-                return RandomHandler.createFloatFromRange(0.2f, 150f, r);
+                mass = RandomHandler.createFloatFromRange(0.2f, 15f, random);
             }
             case OBJECT_MOON: {
-                return RandomHandler.createFloatFromRange(0.001f, 0.8f, r);
+                mass = RandomHandler.createFloatFromRange(0.001f, 0.8f, random);
             }
             default:
-                return 0.2f;
+                mass = 1f;
         }
 
     }
+
+    public int getNameNumber() {
+        return Integer.getInteger(name.split(".")[2]);
+    }
+
+    public void setVirtualPosition(int quadrant) {
+
+        positionQuadrant = quadrant;
+
+        //beginning letters of greek letters names
+        //alpha, beta, gamme, delta
+        String[] xline = {"A", "B", "G", "D"};
+        //epsilon, zeta, eta, theta
+        String[] zline = {"EP", "ZE", "ET", "TH"};
+        //iota, kappa, lambda, my
+        String[] yline = {"I", "K", "L", "M"};
+
+        int z = 0;
+        int y = 0;
+        int x = 0;
+
+        //set quadrant name
+        for (int i = 0; i < quadrant; i++) {
+
+            if (y == 4) {
+                z++;
+                y = 0;
+            } else if (x == 4) {
+                y++;
+                x = 0;
+            } else {
+                x++;
+            }
+        }
+
+        //creates a static number out of the name
+        //and the quadrant value
+        int pos = getNameNumber() / quadrant;
+
+        virtualPosition =
+                xline[x] + "." +
+                        yline[y] + "." +
+                        zline[z] + "." + pos;
+
+    }
+
 
     /**
      * Sets a random postion for a galaxy or solar system.
@@ -347,15 +376,24 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
      *
      * @return
      */
-    public MathHandler.Vector setRandomPosition(Random r) {
-        float devider = 3333f;
+    public void setRandomPosition() {
         float x, y, z;
-        float borderMinDistance = ((UNIVERSE_X / devider) / 2);
+        float w = mapWidth;
+        float h = mapHeight;
+
+        float minOffsetW = RandomHandler.createFloatFromRange(-w, 0f, random);
+        float maxOffsetW = RandomHandler.createFloatFromRange(0f, w, random);
+        float maxOffsetH = RandomHandler.createFloatFromRange(-h, 0f, random);
+        float minOffsetH = RandomHandler.createFloatFromRange(0f, h, random);
+
         switch (type) {
             case OBJECT_GALAXY: {
-                x = (GALAXY_MAX_X + (UNIVERSE_X / RandomHandler.createFloatFromRange(borderMinDistance, devider, r)));
-                y = (GALAXY_MAX_Y + (UNIVERSE_Y / RandomHandler.createFloatFromRange(borderMinDistance, devider, r)));
-                z = (GALAXY_MAX_Z + (UNIVERSE_Z / RandomHandler.createFloatFromRange(borderMinDistance, devider, r)));
+                x = RandomHandler.createFloatFromRange(minOffsetW, w + maxOffsetW, random);
+                y = RandomHandler.createFloatFromRange(minOffsetH, h + maxOffsetH, random);
+                z = RandomHandler.createFloatFromRange(minOffsetW, w + maxOffsetW, random);
+//                x = RandomHandler.createFloatFromRange(0f, w, random);
+//                y = RandomHandler.createFloatFromRange(0f, h, random);
+//                z = RandomHandler.createFloatFromRange(0f, w, random);
                 break;
             }
             case OBJECT_SOLARSYSTEM: {
@@ -367,9 +405,12 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
                 float pPivotY = parent.getY();
                 float pPivotZ = parent.getZ();
 
-                x = (SOLARSYSTEM_MAX_X + (GALAXY_MAX_X / RandomHandler.createFloatFromRange(pPivotX - (pWidth / 2), pPivotX + (pWidth / 2), r)));
-                y = (SOLARSYSTEM_MAX_Y + (GALAXY_MAX_Y / RandomHandler.createFloatFromRange(pPivotY - (pHeight / 2), pPivotY + (pHeight / 2), r)));
-                z = (SOLARSYSTEM_MAX_Z + (GALAXY_MAX_Z / RandomHandler.createFloatFromRange(pPivotZ - ((pWidth / 2) / 2), pPivotZ + ((pWidth / 2) / 2), r)));
+                x = (w + (w / RandomHandler.createFloatFromRange(
+                        pPivotX - (pWidth / 2), pPivotX + (pWidth / 2), random)));
+                y = (h + (h / RandomHandler.createFloatFromRange(
+                        pPivotY - (pHeight / 2), pPivotY + (pHeight / 2), random)));
+                z = (w + (w / RandomHandler.createFloatFromRange
+                        (pPivotZ - ((pWidth / 2) / 2), pPivotZ + ((pWidth / 2) / 2), random)));
                 break;
             }
             default:
@@ -377,60 +418,60 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
                 y = 0;
                 z = 0;
         }
-        return new MathHandler.Vector(x, y, z);
+        myPosition = new MathHandler.Vector(x, y, z);
     }
 
     /**
      * Sets a random position for a planet object
      *
-     * @param solarSystemX
-     * @param solarSystemY
-     * @param solarSystemZ
      * @return
      */
-    public static MathHandler.Vector setRandomPlanetPosition(float solarSystemX, float solarSystemY, float solarSystemZ, Random r) {
+    public void setRandomPlanetPosition() {
         float x, y, z;
         int xDir = 1;
         int yDir = 1;
+
+        float px = parent.getX();
+        float py = parent.getY();
+        float pz = parent.getZ();
         //no z because it should be alwas a plate
 
         //random direction in the solar system
-        if (RandomHandler.createIntegerFromRange(0, 1, r) != 1) xDir = -1;
-        if (RandomHandler.createIntegerFromRange(0, 1, r) != 1) yDir = -1;
+        if (RandomHandler.createIntegerFromRange(0, 1, random) != 1) xDir = -1;
+        if (RandomHandler.createIntegerFromRange(0, 1, random) != 1) yDir = -1;
 
 
-        x = solarSystemX + (RandomHandler.createFloatFromRange(solarSystemX / 8, solarSystemX / 3, r) * xDir);
-        y = solarSystemY + (RandomHandler.createFloatFromRange(solarSystemY / 8, solarSystemY / 3, r) * yDir);
-        z = solarSystemZ + (RandomHandler.createFloatFromRange(solarSystemY / 8, solarSystemY / 3, r));
+        x = px + (RandomHandler.createFloatFromRange(px / 8, px / 3, random) * xDir);
+        y = py + (RandomHandler.createFloatFromRange(py / 8, py / 3, random) * yDir);
+        z = pz + (RandomHandler.createFloatFromRange(pz / 8, pz / 3, random));
 
-        return new MathHandler.Vector(x, y, z);
+        myPosition = new MathHandler.Vector(x, y, z);
     }
 
     /**
      * Sets a random position for the moon from the position data of its parent planet
      *
-     * @param planetX
-     * @param planetY
-     * @param planetZ
      * @return
      */
-    public static MathHandler.Vector setRandomMoonPosition(float planetX, float planetY, float planetZ, Random r) {
+    public void setRandomMoonPosition() {
         float x, y, z;
         int xDir = 1;
         int yDir = 1;
         int zDir = 1;
-
+        float px = parent.getX();
+        float py = parent.getY();
+        float pz = parent.getZ();
         //random direction in the solar system
-        if (RandomHandler.createIntegerFromRange(0, 1, r) != 1) xDir = -1;
-        if (RandomHandler.createIntegerFromRange(0, 1, r) != 1) yDir = -1;
-        if (RandomHandler.createIntegerFromRange(0, 1, r) != 1) zDir = -1;
+        if (RandomHandler.createIntegerFromRange(0, 1, random) != 1) xDir = -1;
+        if (RandomHandler.createIntegerFromRange(0, 1, random) != 1) yDir = -1;
+        if (RandomHandler.createIntegerFromRange(0, 1, random) != 1) zDir = -1;
 
 
-        x = planetX + (RandomHandler.createFloatFromRange(planetX / 8, planetX / 3, r) * xDir);
-        y = planetY + (RandomHandler.createFloatFromRange(planetY / 8, planetY / 3, r) * yDir);
-        z = planetZ + (RandomHandler.createFloatFromRange(planetZ / 8, planetZ / 3, r) * zDir);
+        x = px + (RandomHandler.createFloatFromRange(px / 8, px / 3, random) * xDir);
+        y = py + (RandomHandler.createFloatFromRange(py / 8, py / 3, random) * yDir);
+        z = pz + (RandomHandler.createFloatFromRange(pz / 8, pz / 3, random) * zDir);
 
-        return new MathHandler.Vector(x, y, z);
+        myPosition = new MathHandler.Vector(x, y, z);
     }
 
     /**
@@ -443,20 +484,20 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
      *
      * @return <p>default - {@link #EARTH_RADIUS}</p>
      */
-    public float setRandomRadius(Random r) {
+    public float setRandomRadius() {
         switch (type) {
             case OBJECT_PLANET: {
-                return (EARTH_RADIUS * RandomHandler.createFloatFromRange(0.01f, 20.0f, r));
+                return (EARTH_RADIUS * RandomHandler.createFloatFromRange(0.01f, 20.0f, random));
             }
             case OBJECT_STAR: {
-                return EARTH_RADIUS * RandomHandler.createFloatFromRange(3000.0f, 10000000000.0f, r);
+                return EARTH_RADIUS * RandomHandler.createFloatFromRange(3000.0f, 10000000000.0f, random);
             }
             case OBJECT_MOON: {
-                return EARTH_RADIUS * RandomHandler.createFloatFromRange(0.00001f, 0.4f, r);
+                return EARTH_RADIUS * RandomHandler.createFloatFromRange(0.00001f, 0.4f, random);
             }
             case OBJECT_ASTEROID:
             case OBJECT_COMET: {
-                return EARTH_RADIUS * RandomHandler.createFloatFromRange(0.0000001f, 0.01f, r);
+                return EARTH_RADIUS * RandomHandler.createFloatFromRange(0.0000001f, 0.01f, random);
             }
             default:
                 return EARTH_RADIUS;
@@ -467,17 +508,17 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
      * Create a random name
      * like if its a planet: P.UZDMDK.574865
      */
-    public void setRandomName(Random r) {
+    public void setRandomName() {
         String prefix = "";
         String postfix = "";
         String randName = "";
 
         //create middle
         for (int i = 0; i < 6; i++) {
-            randName += ALPHABET[RandomHandler.createIntegerFromRange(0, ALPHABET.length - 1, r)];
+            randName += ALPHABET[RandomHandler.createIntegerFromRange(0, ALPHABET.length - 1, random)];
         }
         for (int i = 0; i < 6; i++) {
-            postfix += RandomHandler.createIntegerFromRange(0, 9, r);
+            postfix += RandomHandler.createIntegerFromRange(0, 9, random);
         }
 
         if (type == OBJECT_SOLARSYSTEM)
@@ -485,7 +526,7 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
 
         if (type == 0) {
             System.out.println("Type not set!");
-        }else {
+        } else {
             switch (type) {
                 case OBJECT_CITY:
                     prefix = "C";
@@ -516,6 +557,28 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
             }
             this.name = prefix + "." + randName + "." + postfix;
         }
+    }
+
+    public void setRandomRace() {
+        for (int r : Race.RACES) {
+            if (parent.race == r) {
+                race = r;
+            }
+        }
+
+        race = RandomHandler.createIntegerFromRange(
+                Race.RACES[0],
+                Race.RACES[Race.RACES.length - 1],
+                random
+        );
+    }
+
+    public int getRandomPlanetAmount() {
+        return RandomHandler.createIntegerFromRange(0, MAX_PLANETS_IN_SOLAR_SYSTEM, random);
+    }
+
+    protected int getRandomSolarSystemAmount() {
+        return RandomHandler.createIntegerFromRange(0, MAX_SOLAR_SYSTEMS_IN_GALAXY, random);
     }
     /*----------------------------------------BOOLERS-----------------------------------*/
 
@@ -559,6 +622,10 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
         else return false;
     }
 
+    public boolean isUniverse() {
+        if (type == OBJECT_UNIVERSE) return true;
+        else return false;
+    }
 
     /*----------------------------------------GETTERS-----------------------------------*/
     private int getColor(int color) {
@@ -575,8 +642,8 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
 
     public String getTypeName() {
         switch (type) {
-            case OBJECT_WORLD:
-                return "World";
+            case OBJECT_UNIVERSE:
+                return "Universe";
             case OBJECT_GALAXY:
                 return "Galaxy";
             case OBJECT_SOLARSYSTEM:
@@ -595,6 +662,10 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
             default:
                 return "No type";
         }
+    }
+
+    public int getPlanetType() {
+        return planetType;
     }
 
     private String getDatabaseTableFromType() {
@@ -670,8 +741,8 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
     }
 
     @Override
-    public float getDegrees() {
-        return degrees;
+    public float getTemperature() {
+        return temperature;
     }
 
     @Override
@@ -729,33 +800,12 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
         return type;
     }
 
-    @Override
-    public SolarSystem[] getSolarsystems() {
-        return solarSystems;
+    public Map getMap() {
+        return map;
     }
 
     @Override
-    public Planet[] getPlanets() {
-        return planets;
-    }
-
-    @Override
-    public Moon[] getMoons() {
-        return moons;
-    }
-
-    @Override
-    public Star[] getStars() {
-        return stars;
-    }
-
-    @Override
-    public City[] getCities() {
-        return cities;
-    }
-
-    @Override
-    public Vertex getVertex(){
+    public Vertex getVertex() {
         return opengl_position;
     }
 
@@ -775,13 +825,18 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
     }
 
     @Override
-    public void setVertexPosition(){
-        opengl_position = new Vertex(myPosition.getXf(),myPosition.getYf(),myPosition.getZf());
+    public void setVertexPosition() {
+        opengl_position = new Vertex(myPosition.getXf(), myPosition.getYf(), myPosition.getZf());
     }
+
     public void setRadius(float radius) {
         this.radius = radius;
     }
 
+    public void setScreenDimension(int width, int height) {
+        mapWidth = width;
+        mapHeight = height;
+    }
 
 
 

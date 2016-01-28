@@ -204,7 +204,7 @@ public interface DB_Settings {
     String COL_MOONS = "moons";
     String COL_RADIUS = "radius";
     String COL_PlANET_TYPE = "planet_type";
-    String COL_DEGREES = "degrees";
+    String COL_DEGREES = "temperature";
     String COL_MASS = "mass";
     String COL_POS_X = "positionX";
     String COL_POS_Y = "positionY";

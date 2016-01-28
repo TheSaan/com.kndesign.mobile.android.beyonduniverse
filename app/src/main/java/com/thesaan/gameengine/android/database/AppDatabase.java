@@ -16,7 +16,6 @@ import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Moon;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Planet;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.SolarSystem;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Star;
-import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
 import com.thesaan.gameengine.android.DB_Settings;
 import com.thesaan.gameengine.android.handler.MathHandler;
 import com.thesaan.gameengine.android.handler.RandomHandler;
@@ -66,7 +65,7 @@ public class AppDatabase extends Database implements DB_Settings {
                 DatabaseConnectionSupport.POST);
 
         //uses instead of POST -> CONNECTION_TEST as case statement in doInBackground to
-        //run test code
+        //run box_test code
         connection.activateConnectionTest();
 
         if(connection.isConnected())
@@ -746,11 +745,11 @@ public class AppDatabase extends Database implements DB_Settings {
     }
 
 
-    //test end
+    //box_test end
     public void addGalaxy(Galaxy g) {
         int startSolarSystemIndex = getLastSolarSystemIndex() + 1;
 
-        SolarSystem[] systems = g.getSolarsystems();
+        SolarSystem[] systems = null;
 
         System.out.println("Galaxy name: "+ g.getName());
         for (int i = 0; i < systems.length; i++) {
@@ -818,11 +817,11 @@ public class AppDatabase extends Database implements DB_Settings {
         int starStartIndex = getLastStarIndex() + 1;
 
 //        System.out.println("Solar system name: "+s.getName());
-        Star[] stars = s.getStars();
+        Star[] stars = null;
         for (int i = 0; i < stars.length; i++) {
             addStar(stars[i], s.getName());
         }
-        Planet[] planets = s.getPlanets();
+        Planet[] planets = null;
         for (int i = 0; i < planets.length; i++) {
             addPlanet(planets[i], s.getName());
         }
@@ -890,7 +889,7 @@ public class AppDatabase extends Database implements DB_Settings {
                             "" + s.getName(),
                             "" + parent,
                             "" + s.getRadius(),
-                            "" + s.getDegrees(),
+                            "" + s.getTemperature(),
                             "" + s.getMass(),
                             "" + s.getX(),
                             "" + s.getY(),
@@ -915,7 +914,7 @@ public class AppDatabase extends Database implements DB_Settings {
             cv.put(COL_NAME, s.getName());
             cv.put(COL_PARENT, parent);
             cv.put(COL_RADIUS, "" + s.getRadius());
-            cv.put(COL_DEGREES, "" + s.getDegrees());
+            cv.put(COL_DEGREES, "" + s.getTemperature());
             cv.put(COL_MASS, "" + s.getMass());
             cv.put(COL_POS_X, "" + s.getX());
             cv.put(COL_POS_Y, "" + s.getY());
@@ -931,13 +930,13 @@ public class AppDatabase extends Database implements DB_Settings {
         int moonStartIndex = getLastMoonIndex() + 1;
         int cityStartIndex = getLastCityIndex() + 1;
 
-        Moon[] moons = p.getMoons();
+        Moon[] moons = null;
 
         for (int i = 0; i < moons.length; i++) {
             addMoon(moons[i], p.getName());
         }
 
-        City[] cities = p.getCities();
+        City[] cities = null;
 
         if (cities != null) {
             for (int i = 0; i < cities.length; i++) {
@@ -956,7 +955,7 @@ public class AppDatabase extends Database implements DB_Settings {
                                 "" + parent,
                                 "" + p.getRadius(),
                                 "" + p.getPlanetType(),
-                                "" + p.getDegrees(),
+                                "" + p.getTemperature(),
                                 "" + p.getPopulation(),
                                 createChildrenChain(moonStartIndex, getLastMoonIndex()),
                                 createChildrenChain(cityStartIndex, getLastCityIndex()),
@@ -990,7 +989,7 @@ public class AppDatabase extends Database implements DB_Settings {
                 cv.put(COL_PARENT, parent);
                 cv.put(COL_RADIUS, "" + p.getRadius());
                 cv.put(COL_PlANET_TYPE, "" + p.getPlanetType());
-                cv.put(COL_DEGREES, "" + p.getDegrees());
+                cv.put(COL_DEGREES, "" + p.getTemperature());
                 cv.put(COL_POPULATION, "" + p.getPopulation());
                 cv.put(COL_MOONS, createChildrenChain(moonStartIndex, getLastMoonIndex()));
                 cv.put(COL_CITIES, createChildrenChain(cityStartIndex, getLastCityIndex()));
@@ -1021,7 +1020,7 @@ public class AppDatabase extends Database implements DB_Settings {
                             "" + m.getName(),
                             "" + parent,
                             "" + m.getRadius(),
-                            "" + m.getDegrees(),
+                            "" + m.getTemperature(),
                             "" + m.getMass(),
                             "" + m.getX(),
                             "" + m.getY(),
@@ -1047,7 +1046,7 @@ public class AppDatabase extends Database implements DB_Settings {
             cv.put(COL_PARENT, parent);
             cv.put(COL_RADIUS, "" + m.getRadius());
             cv.put(COL_MASS, "" + m.getMass());
-            cv.put(COL_DEGREES, "" + m.getDegrees());
+            cv.put(COL_DEGREES, "" + m.getTemperature());
             cv.put(COL_POS_X, "" + m.getX());
             cv.put(COL_POS_Y, "" + m.getY());
             cv.put(COL_POS_Z, "" + m.getZ());

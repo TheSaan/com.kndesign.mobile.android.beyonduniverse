@@ -1,42 +1,25 @@
 package com.thesaan.beyonduniverse.gamecontent.world;
 
-import android.app.Dialog;
 import android.content.Context;
-import android.os.SystemClock;
-import android.widget.TextView;
+import android.os.AsyncTask;
+import android.os.*;
 
-import com.thesaan.beyonduniverse.R;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Galaxy;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.UniverseObject;
-import com.thesaan.gameengine.android.opengl.shapes.Shape;
-
-import java.util.Random;
+import com.thesaan.gameengine.android.handler.TestHandler;
 
 /**
- * The World class represents the container of all objects (but recursive)
- * so it just contains the galaxies and they continue than.
- * <p/>
- * There are some constants in {@link UniverseObjectProperties} which
- * define the final size or amounts for all included objects.
- * <p/>
- * Also included is the call
- * {@link com.thesaan.gameengine.android.database.DatabaseConnection} if the implementation
- * is done.
+ * The World class creates the {@link Galaxy} list or returns it.
+ * Also defines the first random instance with the initializing
+ * random seed
  */
-public class World implements UniverseObjectProperties {
+public class World extends UniverseObject implements UniverseObjectProperties {
 
     Context context;
 
 
-    //the value in the log text
-    float mass, radius, degrees, volume, population;
-    int planetType;
-    String name;
-
-    private final int randomSeed = 1561488911;
-
-    Random r;
     public Galaxy[] galaxies;
+
     /**
      * The universe object creates all objects like galaxies, solar systems, planets (+ thier cities), moons and stars.
      * <p/>
@@ -46,112 +29,118 @@ public class World implements UniverseObjectProperties {
      * @param context
      */
     public World(Context context) {
-
+        super(OBJECT_UNIVERSE, randomSeed);
         this.context = context;
-        r = new Random(randomSeed);
-
-        try {
-            Thread T = new Thread(new Runnable() {
-                @Override
-                public void run() {
-
-                }
-            });
-
-            T.start();
-
-        } catch (Exception e) {
-            System.err.println("Create Galaxy ERROR: ");
-            e.printStackTrace();
-        }
-
     }
-
 
     /**
      * Creates a certain amount of {@link Galaxy}s. Also proofs on twins
-     *
      */
-    public Galaxy[] openGalaxies(int amount) {
+    public Galaxy[] createGalaxies(int amount, Map map) {
 
 
+        TestHandler test = new TestHandler();
+//        Object[] params = {amount, map, this};
+//        MyAsyncClass ma = new MyAsyncClass();
+//        ma.execute(params);
+//
+//        ma.notify();
 
 
         Galaxy g;
+        test.startTimer();
 
         galaxies = new Galaxy[amount];
-
-
         for (int i = 0; i < amount; i++) {
+            int seed = random.nextInt();
 
-            g = new Galaxy("",OBJECT_GALAXY, r.nextInt());
+            g = new Galaxy("", this, map, seed);
 
-//            System.out.println("Loading object "+(i+1)+"/"+amount+" called "+g.getName());
+            System.out.println("Loading object " + (i + 1) + "/" + amount + " called " + g.getName());
 
             //check for twins
-            for(Galaxy g_test:galaxies){
+            for (int k = 0; k < i; k++) {
                 /*
                  If one of the already created galaxies has the same name
                  as the current one. re-run this loop step. Than another random
                  name will be set.
                  */
-                if(g_test != null && i == 1) {
-                    if (g_test.getName() == g.getName()) {
+                if (galaxies[k] != null) {
+                    if (galaxies[k].getName() == g.getName()) {
                         i--;
                         continue;
                     }
                 }
             }
             galaxies[i] = g;
-
+            test.printLoopProgress("create galaxies", i, amount);
         }
+
+        test.stopTimer("Finished creating Galaxies");
         return galaxies;
     }
-
-    public static Map getMap(UniverseObject[] objects){
-        float[] coordinates = new float[objects.length* Shape.COORDS_PER_VERTEX];
-        int step = 0;
-        for(int i = 0; i < objects.length; i++){
-            if(i == 0) {
-                coordinates[0] = objects[0].getPosition().getXf();
-                coordinates[1] = objects[0].getPosition().getYf();
-                coordinates[2] = objects[0].getPosition().getZf();
-            }else{
-                coordinates[step] = objects[i].getPosition().getXf();
-                coordinates[step+1] = objects[i].getPosition().getYf();
-                coordinates[step+2] = objects[i].getPosition().getZf();
-            }
-            step += 3;
-        }
-
-        Map map = new Map();
-        map.setObjectCoordinates(coordinates);
-
-        return map;
-    }
-    /**
-     * Only resets the temporary properties for the log monitoring
-     */
-    private void resetProperties() {
-        mass = 0;
-        degrees = 0;
-        radius = 0;
-        volume = 0;
-        name = "";
-        population = 0;
-        planetType = 0;
-    }
-
-
-    /**
-     * Set the status of for the loading progress bar
-     * //TODO not implemented
-     *
-     * @param progress
-     */
-    public void setLoadingProgressBar(int progress) {
-
-    }
-
-
+//    TODO only use this AsyncTask when a loading sequence at the start of the game is implemented
+//    class MyAsyncClass extends AsyncTask<Object,Void,Galaxy[]> {
+//        // All the stuff, core work in doInBackground
+//
+//
+//        @Override
+//        protected void onPostExecute(Galaxy... objects) {
+//            galaxies = objects;
+//
+//        }
+//
+//        @Override
+//        protected void onPreExecute() {
+//
+//        }
+//
+//        @Override
+//        protected Galaxy[] doInBackground(Object... params) {
+//
+//            int a = (int)params[0];
+//            Map m = (Map)params[1];
+//            World w = (World)params[2];
+//
+//            System.out.println("a: "+a+"\n m: "+m+"\n w: "+w);
+//            TestHandler test = new TestHandler();
+//
+//            System.out.println("doInBackground started...");
+//
+//            Galaxy g;
+//            test.startTimer();
+//
+//            galaxies = new Galaxy[a];
+//            for (int i = 0; i < a; i++) {
+//                int seed = random.nextInt();
+//
+//                g = new Galaxy("", w, m, seed);
+//
+//                    System.out.println("Loading object "+(i+1)+"/"+a+" called "+g.getName());
+//
+//                //check for twins
+//                for (int k = 0; k < i; k++) {
+//                        /*
+//                         If one of the already created galaxies has the same name
+//                         as the current one. re-run this loop step. Than another random
+//                         name will be set.
+//                         */
+//                    if (galaxies[k] != null) {
+//                        if (galaxies[k].getName() == g.getName()) {
+//                            i--;
+//                            continue;
+//                        }
+//                    }
+//                    galaxies[i] = g;
+//                }
+//                test.printLoopProgress("create galaxies",i,a);
+//            }
+//
+//            test.stopTimer("Finished creating Galaxies");
+//            return galaxies;
+//        }
+//    }
 }
+
+
+
