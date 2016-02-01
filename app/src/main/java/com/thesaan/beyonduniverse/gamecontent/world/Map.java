@@ -7,6 +7,7 @@ import com.thesaan.beyonduniverse.math.ObjectVector;
 import com.thesaan.gameengine.android.handler.MathHandler;
 import com.thesaan.gameengine.android.handler.RandomHandler;
 import com.thesaan.gameengine.android.handler.TestHandler;
+import com.thesaan.gameengine.android.jpct_extend.BUObject3D;
 import com.thesaan.gameengine.android.opengl.shapes.Shape;
 import com.thesaan.gameengine.android.opengl.shapes.Vertex;
 
@@ -68,6 +69,9 @@ public class Map {
 
     //contains the current objects
     UniverseObject[] mObjects;
+
+    //all models for the current object list
+    BUObject3D[] objectModels;
 
     //Screen dimension
     int screenWidth, screenHeight;
@@ -481,6 +485,7 @@ public class Map {
         this.mapCursor = mapCursor;
     }
 
+
     /**
      * Moves the cursor on map in relation to the player movement
      *
@@ -510,6 +515,22 @@ public class Map {
 
         //get their coordinates
         return init();
+    }
+
+    public BUObject3D[] getObjectModels() {
+
+        int length = getObjects().length;
+
+        objectModels = new BUObject3D[length];
+
+        for(int i = 0; i < length; i++){
+            if(mObjects[i].getObject() == null){
+                mObjects[i].resetModel();
+            }
+            objectModels[i] = mObjects[i].getObject();
+        }
+
+        return objectModels;
     }
 
     public int getNumberOfObjects() {

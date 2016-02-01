@@ -18,8 +18,6 @@ import com.thesaan.gameengine.android.handler.TestHandler;
  */
 public class MyGLSurfaceView extends GLSurfaceView {
 
-    private final MyGLRenderer r;
-
     Context context;
 
     //Test
@@ -32,7 +30,7 @@ public class MyGLSurfaceView extends GLSurfaceView {
 
     float screenWidth, screenHeight;
 
-    private int fingersOnScreen;
+    private MyGLRenderer renderer;
 
     SurfaceHolder holder;
 
@@ -51,7 +49,7 @@ public class MyGLSurfaceView extends GLSurfaceView {
     private float touchOffset;
 
 
-    public MyGLSurfaceView(Context context, Map map) {
+    public MyGLSurfaceView(Context context) {
         super(context);
         this.context = context;
 
@@ -61,9 +59,6 @@ public class MyGLSurfaceView extends GLSurfaceView {
         // Create an OpenGL ES 2.0 context
         setEGLContextClientVersion(2);
 
-
-        r = new MyGLRenderer(context);
-
         holder = getHolder();
 
         surfaceHandler = new Handler(Looper.getMainLooper()) {
@@ -72,20 +67,10 @@ public class MyGLSurfaceView extends GLSurfaceView {
                 //TODO MessageSystem einstellen {@link https://developer.android.com/training/multiple-threads/communicate-ui.html#Handler}
             }
         };
-//        surfaceHandler.post(new BuildThread(100, BuildThread.ACTION_CREATE_GALAXIES));
-        r.setTouchOffset(touchOffset);
 
-        //to provide the display dimension
-        r.setMap(map);
+//        //to provide the display dimension
+//        r.setMap(map);
 
-        r.setSurfaceHandler(surfaceHandler);
-
-        // Set the Renderer for drawing on the GLSurfaceView
-        setRenderer(r);
-
-
-        // Render the view only when there is a change in the drawing data
-        setRenderMode(MyGLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
         touchOffset = 10f;
     }
@@ -97,92 +82,6 @@ public class MyGLSurfaceView extends GLSurfaceView {
     public void setScreenDimension(int width, int height) {
         screenHeight = height;
         screenWidth = width;
-
-        r.setScreenDim(width, height);
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent e) {
-        // MotionEvent reports input details from the touch screen
-        // and other input controls. In this case, you are only
-        // interested in events where the touch position changed.
-
-        float x = e.getX();
-        float y = e.getY();
-        int[] axices = {0,0,0};
-
-
-        screenHeight = r.screenHeigth;
-        screenWidth = r.screenWidth;
-
-        switch (e.getAction()) {
-            case MotionEvent.ACTION_UP:
-                mLastTouchX = x;
-                mLastTouchY = y;
-                if (r != null) {
-                    r.setFingerDown(false);
-                }
-            case MotionEvent.ACTION_DOWN:
-                if (r != null) {
-                    r.setMovedDistance(x, y);
-                    r.setLastAngle((float) r.getDegreesFromTouchEvent(x, y));
-                    r.setFingerDown(true);
-                }
-                //remember the position where the finger went up
-                if (mLastTouchX == 0 && mLastTouchX == 0) {
-                    mFirstTouchX = mLastTouchX;
-                    mFirstTouchY = mLastTouchY;
-                } else {
-                    mFirstTouchX = x;
-                    mFirstTouchY = y;
-                }
-
-                r.setTouchPosition(x, y);
-                axices = getAxices(x, y);
-
-                r.setAxices(axices[0], axices[1], axices[2]);
-
-//                System.out.println("X-A: " + axices[0] + " Y-A: " + axices[1] + " Z-A: " + axices[2]);
-
-                mLastTouchX = 0;
-                mLastTouchY = 0;
-            case MotionEvent.ACTION_MOVE:
-//                float dx = x - mPreviousX;
-//                float dy = y - mPreviousY;
-                float dx = x - mFirstTouchX;
-                float dy = y - mFirstTouchY;
-
-                MathHandler.Vector origin = new MathHandler.Vector(x, y, 1);
-
-
-                r.setMovedDistance(dx, dy);
-                float angle = (float) r.getDegreesFromTouchEvent();
-
-
-                origin.setScreenSize(r.screenWidth, r.screenHeigth);
-
-                if (r != null && isOutOfOffset(dx, dy, touchOffset)) {
-                    //roteate to get the z value
-                    origin.rotate3D(angle, axices[0], axices[1], axices[2], null, origin);
-
-//                    r.setAxices(1,0,0);
-//                    r.setAxices(0,1,0);
-//                    r.setAxices(0,0,1);
-                    r.setOrigin(origin);
-//                    r.mDeltaX += deltaX;
-//                    r.mDeltaY += deltaY;
-                    requestRender();
-                }
-            case MotionEvent.ACTION_POINTER_DOWN:
-                fingersOnScreen = e.getPointerCount();
-
-            case MotionEvent.ACTION_POINTER_UP:
-                fingersOnScreen = 0;
-        }
-
-        mPreviousX = x;
-        mPreviousY = y;
-        return true;
     }
 
     /**
@@ -348,9 +247,16 @@ public class MyGLSurfaceView extends GLSurfaceView {
     }
 
     public MyGLRenderer getRenderer() {
-        return r;
+        return renderer;
     }
 
+    /**
+     * Makes the renderer data accessable
+     * @param r
+     */
+    public void setRendererLink(MyGLRenderer r){
+        this.renderer = r;
+    }
     /**
      * For different background tasks. During the loading
      */

@@ -397,6 +397,9 @@ public class MathHandler {
         }
     }
 
+    public static float getPercentage(float w, float g){
+        return (100*w)/g;
+    }
     /**
      * @return
      */
@@ -1826,7 +1829,10 @@ public class MathHandler {
          * @param vector
          */
         public Vector(float[] vector) {
-            mFloatVec = vector;
+            int length = vector.length;
+            mFloatVec = new float[length+1];
+            System.arraycopy(vector,0,mFloatVec,0,length);
+            mFloatVec[length] = 1;
             isFloat = true;
         }
 
@@ -1834,7 +1840,10 @@ public class MathHandler {
          * @param vector
          */
         public Vector(double[] vector) {
-            mDoubleVec = vector;
+            int length = vector.length;
+            mDoubleVec = new double[length+1];
+            System.arraycopy(vector,0,mDoubleVec,0,length);
+            mDoubleVec[length] = 1;
             isDouble = true;
         }
 
@@ -1842,7 +1851,10 @@ public class MathHandler {
          * @param vector
          */
         public Vector(int[] vector) {
-            mIntVec = vector;
+            int length = vector.length;
+            mIntVec = new int[length+1];
+            System.arraycopy(vector,0,mIntVec,0,length);
+            mIntVec[length] = 1;
             isInt = true;
         }
 

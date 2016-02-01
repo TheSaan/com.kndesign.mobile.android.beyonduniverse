@@ -5,6 +5,8 @@ package com.thesaan.beyonduniverse.gamecontent.world;
  */
 public interface UniverseObjectProperties {
 
+    int  INFO_POSITION = 5001;
+
     //seed for initialization
     int randomSeed = 1561488911;
 

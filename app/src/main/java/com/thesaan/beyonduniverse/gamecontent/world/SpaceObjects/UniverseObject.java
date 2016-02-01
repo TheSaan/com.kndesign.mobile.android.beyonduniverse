@@ -4,12 +4,16 @@ import com.thesaan.beyonduniverse.gamecontent.Drawables;
 import com.thesaan.beyonduniverse.gamecontent.Race;
 import com.thesaan.beyonduniverse.gamecontent.world.Map;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
+import com.thesaan.beyonduniverse.gamecontent.world.models.ModelGalaxy;
+import com.thesaan.gameengine.android.opengl.text.GameFont;
 import com.thesaan.gameengine.android.DB_Settings;
 import com.thesaan.gameengine.android.handler.MathHandler;
 import com.thesaan.gameengine.android.handler.RandomHandler;
+import com.thesaan.gameengine.android.jpct_extend.BUObject3D;
 import com.thesaan.gameengine.android.opengl.shapes.Vertex;
+import com.threed.jpct.Object3D;
+import com.threed.jpct.Primitives;
 
-import java.text.DecimalFormat;
 import java.util.Random;
 
 /**
@@ -21,8 +25,15 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
 
     float mapWidth, mapHeight;
 
+    public BUObject3D myObject;
     public int race;
 
+    /*
+    Detects wheter the map objects are already
+    linked with a line to the nearest neighbor
+    or not
+     */
+    boolean isLinked;
     public long population;
     public float radius;
     public float scope;
@@ -66,12 +77,10 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
     public Map map;
 
     /*----------------------------------------CONSTRUCTORS-----------------------------------*/
-
     /**
      * For creating the world object and initializing the map
      */
     public UniverseObject(int type, int seed) {
-
         random = new Random(seed);
 
         this.type = type;
@@ -105,6 +114,7 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
 
         //if every property was set correct
         if (error == 0) {
+            myObject = getModelByType();//TODO set objects in UniverseObject Constructor
             //set name
             if (name == "") {
                 setRandomName();
@@ -121,11 +131,53 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
             - todo Moon init
          */
         }
+
     }
 
 
     /*----------------------------------------SETTERS-----------------------------------*/
 
+    public void writeInfo(int infoType, GameFont font){
+        if(font != null){
+            float[] pos = myPosition.getmFloatVec();
+            float x = pos[0]+20f;
+            float y = pos[1]+20f;
+            float z = pos[2];
+            switch (infoType){
+                case INFO_POSITION:
+
+                    font.write(getPosInfoText(),x,y,z,0);
+                    break;
+                default:
+                    font.write(getName(),x,y,z,0);
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Get the Model Object by the defines object type
+     * @return
+     * Object3D Model
+     */
+    private BUObject3D getModelByType(){
+        switch (type){
+            case OBJECT_GALAXY:
+                return new ModelGalaxy();
+            default:
+                return new BUObject3D(Primitives.getCone(10f));
+        }
+    }
+
+    public void resetModel(){
+        myObject = getModelByType();
+    }
+    private String getPosInfoText(){
+        return
+                "X: "+myPosition.getXf()+"\n"+
+                        "Y: "+ myPosition.getYf()+"\n"+
+                        "Z: "+ myPosition.getZf();
+    }
     /**
      * A method that includes every random property
      * setter method which need all objects
@@ -708,6 +760,18 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
                 null,
                 null
         );
+
+        if(myObject != null) {
+            if (xAxis == 1) myObject.rotateX(angle);
+        }
+
+        if(myObject != null) {
+            if (yAxis == 1) myObject.rotateY(angle);
+        }
+
+        if(myObject != null) {
+            if (zAxis == 1) myObject.rotateZ(angle);
+        }
     }
 
     @Override
@@ -838,8 +902,18 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
         mapHeight = height;
     }
 
+    public void setObject(BUObject3D myObject) {
+        this.myObject = myObject;
+        this.myObject.translate(
+                myPosition.getXf(),
+                myPosition.getYf(),
+                myPosition.getZf()
+        );
+    }
 
-
-   /*----------------------------------------RUNNABLES-----------------------------------*/
+    public BUObject3D getObject() {
+        return myObject;
+    }
+    /*----------------------------------------RUNNABLES-----------------------------------*/
 
 }
