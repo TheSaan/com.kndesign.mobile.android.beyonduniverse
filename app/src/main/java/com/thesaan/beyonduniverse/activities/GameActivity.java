@@ -1,26 +1,30 @@
 package com.thesaan.beyonduniverse.activities;
 
-import java.lang.reflect.Field;
-
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLDisplay;
 
 import android.app.Activity;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 
 import com.thesaan.beyonduniverse.MyGLSurfaceView;
-import com.thesaan.beyonduniverse.gamecontent.world.Map;
-import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.UniverseObject;
-import com.thesaan.gameengine.android.jpct_extend.BUObject3D;
+import com.thesaan.beyonduniverse.R;
+import com.thesaan.beyonduniverse.gamecontent.world.Game;
+import com.thesaan.gameengine.android.handler.TestHandler;
 import com.thesaan.gameengine.android.opengl.MyGLRenderer;
-import com.threed.jpct.Logger;
-import com.threed.jpct.Primitives;
-import com.threed.jpct.SimpleVector;
 
 /**
  * A simple demo. This shows more how to use jPCT-AE than it shows how to write
@@ -29,12 +33,9 @@ import com.threed.jpct.SimpleVector;
  *
  * @author EgonOlsen
  */
-public class GameActivity extends Activity {
+public class GameActivity extends Activity implements View.OnClickListener {
 
     final int FINGER_SCALE = 2;
-
-    private MyGLSurfaceView mGLView;
-    private MyGLRenderer renderer = null;
 
 
     private float touchTurn = 0;
@@ -49,14 +50,15 @@ public class GameActivity extends Activity {
     private float xpos = -1;
     private float ypos = -1;
 
-    //the current objects of the map
-    UniverseObject[] objects;
+    MyGLSurfaceView mGLView;
 
-    BUObject3D[] objectModels;
+    ImageView add1, add2, add3, add4;
 
-    Map map;
-    //screen center position
-    SimpleVector pivot;
+    MyGLRenderer renderer = null;
+
+    Button btnStartGame, btnLoadGame, btnOptions, btnDevOptions, btnExit, btnCredits;
+
+    Game game;
 
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -64,64 +66,42 @@ public class GameActivity extends Activity {
 
         mScaleDetector = new ScaleGestureDetector(getApplicationContext(), new ScaleListener());
 
-        mGLView = new MyGLSurfaceView(getApplicationContext());
+        setViews();
 
+        //First show all companies
+        setContentView(R.layout.activity_game_adds);
+    }
 
-        mGLView.setEGLConfigChooser(new GLSurfaceView.EGLConfigChooser() {
-            public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) {
-                // Ensure that we get a 16bit framebuffer. Otherwise, we'll fall
-                // back to Pixelflinger on some device (read: Samsung I7500)
-                int[] attributes = new int[]{EGL10.EGL_DEPTH_SIZE, 16, EGL10.EGL_NONE};
-                EGLConfig[] configs = new EGLConfig[1];
-                int[] result = new int[1];
-                egl.eglChooseConfig(display, attributes, configs, 1, result);
-                return configs[0];
-            }
-        });
+    /**
+     * Displays the companies who created the game
+     * in a two second intervall
+     */
+    private void runAdds() {
 
-        final DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+//TODO add Advertising image diashow at the start of the game
 
-        map = new Map(
-                getApplicationContext(),
-                displayMetrics.widthPixels,
-                displayMetrics.heightPixels
-        );
+//
+//        TestHandler test = new TestHandler();
+//
+//        int length = adds.length;
 
-        if (map != null) {
-            map.load();
-            if (map.isLoaded()) {
-                int length = map.getNumberOfObjects();
-                objects =  map.getObjects();
+        //show all images for a 2 seconds
+//        test.startTimer();
+//        for (int i = 1; i < length; i++) {
+//
+//            if (test.stopTime() >= 2000) {
+//                //now after every 2 seconds change the image
+//
+//                adds[i-1].setVisibility(View.GONE);
+//                adds[i].setVisibility(View.VISIBLE);
+//                test.startTimer();
+//            } else {
+//                i--;
+//            }
+//        }
 
-                //center of the screen
-                pivot = new SimpleVector(
-                        map.getScreenWidth() / 2,
-                        map.getScreenHeight() / 2,
-                        1000f);
-
-                //set the positions of the cubes to the galaxies
-                for (int i = 0; i < length; i++) {
-                    objects[i].resetModel();
-                    objects[i].getObject().setRotationPivot(pivot);
-
-                }
-
-                objectModels = map.getObjectModels();
-            }
-        }
-
-        renderer = new MyGLRenderer(getApplicationContext(),map);
-
-        renderer.setScreenDim(map.getScreenWidth(),map.getScreenHeight());
-        renderer.setSceneCenter(pivot);
-
-        mGLView.setRendererLink(renderer);
-        mGLView.setRenderer(renderer);
-
-        // Render the view only when there is a change in the drawing data
-        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        setContentView(mGLView);
+        //after displaying the adds, run the menu
+//        setContentView(R.layout.activity_game_menu);
     }
 
     @Override
@@ -134,11 +114,19 @@ public class GameActivity extends Activity {
     protected void onResume() {
         super.onResume();
         mGLView.onResume();
+        runAdds();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        if (hasFocus) {
+//            runAdds();
+        }
     }
 
     public boolean onTouchEvent(MotionEvent me) {
@@ -150,9 +138,13 @@ public class GameActivity extends Activity {
         switch (me.getAction()) {
 
             case MotionEvent.ACTION_DOWN:
+
                 xpos = me.getX();
                 ypos = me.getY();
-                renderer.setCamStartMoveTime();
+                if (renderer != null) {
+                    renderer.setCamStartMoveTime();
+                }
+
                 return true;
 
 
@@ -173,21 +165,55 @@ public class GameActivity extends Activity {
 
                 fingers = me.getPointerCount();
 
-                //2 fingers move the cam
-                if(fingers == 2) {
-                    renderer.moveCam(xd,yd,0);
-                }else
-                //3 fingers zoom
-                if(fingers == 3){
-                    renderer.moveCam(0,0,yd);
+                if (renderer != null) {
+                    //2 fingers move the cam
+                    if (fingers == 2) {
+                        renderer.moveCam(xd, yd, 0);
+                    } else
+                        //3 fingers zoom
+                        if (fingers == 3) {
+                            renderer.moveCam(0, 0, yd);
+                        }
                 }
 
-                System.out.println("Fingers: "+fingers);
                 touchTurn = xd / -100f;
                 touchTurnUp = yd / -100f;
 
                 return true;
             case MotionEvent.ACTION_POINTER_DOWN:
+                fingers = me.getPointerCount() - 1;
+                add1 = (ImageView) findViewById(R.id.ivAdd_Add0);
+                add2 = (ImageView) findViewById(R.id.ivAdd_Add1);
+                add3 = (ImageView) findViewById(R.id.ivAdd_Add2);
+                add4 = (ImageView) findViewById(R.id.ivAdd_Add3);
+
+                switch (fingers) {
+                    case 0:
+                        add1.setVisibility(ImageView.VISIBLE);
+                        add2.setVisibility(ImageView.INVISIBLE);
+                        add3.setVisibility(ImageView.INVISIBLE);
+                        add4.setVisibility(ImageView.INVISIBLE);
+                        break;
+                    case 1:
+                        add1.setVisibility(ImageView.INVISIBLE);
+                        add2.setVisibility(ImageView.VISIBLE);
+                        add3.setVisibility(ImageView.INVISIBLE);
+                        add4.setVisibility(ImageView.INVISIBLE);
+                        break;
+                    case 2:
+                        add1.setVisibility(ImageView.INVISIBLE);
+                        add2.setVisibility(ImageView.INVISIBLE);
+                        add3.setVisibility(ImageView.VISIBLE);
+                        add4.setVisibility(ImageView.INVISIBLE);
+                        break;
+                    case 3:
+                        add1.setVisibility(ImageView.INVISIBLE);
+                        add2.setVisibility(ImageView.INVISIBLE);
+                        add3.setVisibility(ImageView.INVISIBLE);
+                        add4.setVisibility(ImageView.VISIBLE);
+                        break;
+                }
+
 
                 return true;
             case MotionEvent.ACTION_POINTER_UP:
@@ -208,6 +234,56 @@ public class GameActivity extends Activity {
         return true;
     }
 
+    private void setViews() {
+
+        btnStartGame = (Button) findViewById(R.id.btnStartGame);
+        btnLoadGame = (Button) findViewById(R.id.btnLoadGame);
+        btnOptions = (Button) findViewById(R.id.btnOptions);
+        btnDevOptions = (Button) findViewById(R.id.btnDevOptions);
+        btnCredits = (Button) findViewById(R.id.btnCredits);
+        btnExit = (Button) findViewById(R.id.btnExit);
+
+        btnStartGame.setOnClickListener(this);
+        btnLoadGame.setOnClickListener(this);
+        btnOptions.setOnClickListener(this);
+        btnDevOptions.setOnClickListener(this);
+        btnCredits.setOnClickListener(this);
+        btnExit.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btnStartGame:
+                //start new game
+                mGLView = game.start(this);
+                setContentView(mGLView);
+                break;
+            case R.id.btnLoadGame:
+                //to select a saved game to start it
+                setContentView(R.layout.activity_game_load_select);
+                break;
+            case R.id.btnOptions:
+                //open settings
+                setContentView(R.layout.activity_game_options);
+                break;
+            case R.id.btnDevOptions:
+                //test settings
+                setContentView(R.layout.activity_game_developeroptions);
+                break;
+            case R.id.btnCredits:
+                //dev team infos
+                Intent credits = new Intent(getApplicationContext(), GameCreditsActivity.class);
+                startActivity(credits);
+                break;
+            case R.id.btnExit:
+                //close game
+                game.exit();
+                break;
+        }
+    }
+
+
     private class ScaleListener
             extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
@@ -217,7 +293,7 @@ public class GameActivity extends Activity {
             boolean scaleUp = true;
             float newSf = detector.getScaleFactor();
 
-            if(mScaleFactor < newSf){
+            if (mScaleFactor < newSf) {
                 scaleUp = false;
             }
 
@@ -228,9 +304,9 @@ public class GameActivity extends Activity {
 //            System.out.println("ScaleFactor " + mScaleFactor);
 
             //TODO Cube Scale test
-            for (BUObject3D obj : objectModels) {
-                obj.onScalePosition(scaleUp,4f);
-            }
+//            for (BUObject3D obj : objectModels) {
+//                obj.onScalePosition(scaleUp,4f);
+//            }
 
 //            invalidate();
             return true;

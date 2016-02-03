@@ -33,20 +33,25 @@ public class BitmapHandler {
 
     public static final String FORMAT_GIF = ".gif";
 
-    public BitmapHandler(Context context){
+    public BitmapHandler(Context context) {
 
         this.context = context;
     }
 
-    public Bitmap resizeBitmap(Bitmap bm, double scaleFactor){
-        if(bm.getHeight() > 0 && bm.getWidth() > 0) {
+    public Bitmap resizeBitmap(Bitmap bm, double scaleFactor) {
+        if (bm.getHeight() > 0 && bm.getWidth() > 0) {
             Bitmap resizedBitmap = Bitmap.createScaledBitmap(bm, (int) (bm.getWidth() * scaleFactor), (int) (bm.getHeight() * scaleFactor), true);
             return resizedBitmap;
-        }else{
+        } else {
             return null;
         }
     }
-    public Bitmap makeBitmapMutable(Bitmap bitmap){
+
+    /**
+     * @param bitmap
+     * @return
+     */
+    public Bitmap makeBitmapMutable(Bitmap bitmap) {
         try {
             //this is the file going to use temporally to save the bytes.
             // This file will not be a image, it will store the raw image data.
@@ -63,11 +68,10 @@ public class BitmapHandler {
             Bitmap.Config type = bitmap.getConfig();
 
 
-
             //Copy the byte to the file
             //Assume source bitmap loaded using options.inPreferredConfig = Config.ARGB_8888;
             FileChannel channel = randomAccessFile.getChannel();
-            MappedByteBuffer map = channel.map(FileChannel.MapMode.READ_WRITE, 0, bitmap.getRowBytes()*height);
+            MappedByteBuffer map = channel.map(FileChannel.MapMode.READ_WRITE, 0, bitmap.getRowBytes() * height);
             bitmap.copyPixelsToBuffer(map);
             //recycle the source bitmap, this will be no longer used.
             bitmap.recycle();
@@ -93,6 +97,11 @@ public class BitmapHandler {
 
         return null;
     }
+
+    /**
+     * @param path
+     * @return
+     */
     public Bitmap getBitmap(String path) {
         AndroidHandler ah = new AndroidHandler(context);
 
@@ -133,6 +142,11 @@ public class BitmapHandler {
             return null;
         }
     }
+
+    /**
+     * @param path
+     * @return
+     */
     public Bitmap getBitmapWithOptions(String path) {
 
         Bitmap b;
@@ -148,51 +162,69 @@ public class BitmapHandler {
 
     }
 
+    /**
+     * @param bmp
+     * @return
+     */
     public ImageView getImage(Bitmap bmp) {
 
         try {
             ImageView image = new ImageView(context);
             image.setImageBitmap(bmp);
             return image;
-        }catch (NullPointerException npe){
-            System.err.println("NPE in getImage("+bmp+","+context+")\n\n"+npe);
+        } catch (NullPointerException npe) {
+            System.err.println("NPE in getImage(" + bmp + "," + context + ")\n\n" + npe);
             return null;
         }
     }
+
+    /**
+     * @param source
+     * @param angle
+     * @return
+     */
     public static Bitmap rotateBitmap(Bitmap source, float angle) {
         Matrix matrix = new Matrix();
         matrix.setRotate(angle);
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
-    public static Bitmap scaleBitmap(Bitmap src,int width, int height){
+
+    /**
+     * @param src
+     * @param width
+     * @param height
+     * @return
+     */
+    public static Bitmap scaleBitmap(Bitmap src, int width, int height) {
 
         return Bitmap.createScaledBitmap(src, width, height, true);
     }
-    public void saveBitmapToFile(File file, Bitmap bm){
-        System.out.println("Width: "+ bm.getWidth()+" Height: "+bm.getHeight());
-        try
-        {
+
+    /**
+     * @param file
+     * @param bm
+     */
+    public void saveBitmapToFile(File file, Bitmap bm) {
+        System.out.println("Width: " + bm.getWidth() + " Height: " + bm.getHeight());
+        try {
             FileOutputStream out = new FileOutputStream(file.getPath());
-            bm.compress(Bitmap.CompressFormat.JPEG,100,out);
+            bm.compress(Bitmap.CompressFormat.JPEG, 100, out);
             out.flush();
             out.close();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e("File Compress Error", "ERROR:" + e.toString());
         }
     }
 
     /**
      * Plays a GIF animation inside a custom view
-     *
+     * <p/>
      * maybe some settings could be inserted as arguments like
      * gif size...
      *
-     * @param filename
-     *  File has to be contained in assets folder
+     * @param filename File has to be contained in assets folder
      */
-    public View playGif(String filename){
+    public View playGif(String filename) {
 
         InputStream stream = null;
         try {
@@ -205,6 +237,9 @@ public class BitmapHandler {
         return view;
     }
 
+    /**
+     *
+     */
     public class GIFView extends View {
 
         InputStream mStream;
@@ -213,7 +248,7 @@ public class BitmapHandler {
 
         private long movieStart;
 
-        public GIFView(InputStream stream){
+        public GIFView(InputStream stream) {
             super(context);
 
             mStream = stream;
@@ -222,19 +257,55 @@ public class BitmapHandler {
         }
 
         @Override
-        protected void onDraw(Canvas canvas){
+        protected void onDraw(Canvas canvas) {
             canvas.drawColor(Color.TRANSPARENT);
             super.onDraw(canvas);
 
             final long now = SystemClock.uptimeMillis();
 
-            if(movieStart == 0){
+            if (movieStart == 0) {
                 movieStart = now;
             }
-            final int relTime = (int)((now - movieStart) % mMovie.duration());
+            final int relTime = (int) ((now - movieStart) % mMovie.duration());
             mMovie.setTime(relTime);
             mMovie.draw(canvas, 10, 10);
             this.invalidate();
+        }
+    }
+
+    /**
+     * @param resource_ids
+     */
+    public static void displayDiashow(int[] resource_ids, ImageView view, Context context) {
+
+        TestHandler test = new TestHandler();
+
+        int length = resource_ids.length;
+
+        Bitmap[] bitmaps = new Bitmap[length];
+
+        for (int i = 0; i < length; i++) {
+            Bitmap b = BitmapFactory.decodeResource(context.getResources(), resource_ids[i]);
+            bitmaps[i] = b;
+        }
+
+        //show all images for a 2 seconds
+
+
+        view.setImageResource(resource_ids[0]);
+
+        //now after every second second change the image
+        for (int i = 1; i < length; i++) {
+            // wait two seconds
+            test.startTimer();
+            if (test.stopTime() >= 2000) {
+
+                //next image after 2 seconds
+                view.setImageBitmap(bitmaps[i]);
+//                view.setImageResource(resource_ids[i]);
+            } else {
+                i--;
+            }
         }
     }
 }

@@ -2,11 +2,8 @@ package com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects;
 
 import com.thesaan.beyonduniverse.gamecontent.world.Map;
 import com.thesaan.beyonduniverse.gamecontent.world.UniverseObjectProperties;
-import com.thesaan.beyonduniverse.gamecontent.world.World;
+import com.thesaan.beyonduniverse.gamecontent.world.Game;
 import com.thesaan.gameengine.android.handler.MathHandler;
-import com.thesaan.gameengine.android.handler.RandomHandler;
-
-import java.util.Random;
 
 /**
  * Created by mknoe on 28.04.2015.
@@ -15,7 +12,7 @@ public class Galaxy extends UniverseObject implements ObjectProperties, Universe
 
     SolarSystem[] solarSystems;
 
-    public Galaxy(String name, World world, Map map, int seed) {
+    public Galaxy(String name, Game world, Map map, int seed) {
         super(name, OBJECT_GALAXY, world, map, seed);
     }
 

@@ -38,7 +38,9 @@ public class BUWorld extends World {
         BUObject3D[] buObject3Ds = new BUObject3D[getSize()-1];
 
         for(BUObject3D obj:buObject3Ds){
-            obj = new BUObject3D(objects.nextElement());
+            BUObject3D temp = (BUObject3D)objects.nextElement();
+
+            obj = new BUObject3D(temp,temp.getModelType());
         }
 
         return buObject3Ds;

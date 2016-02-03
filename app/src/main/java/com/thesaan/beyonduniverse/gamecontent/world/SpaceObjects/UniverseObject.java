@@ -23,7 +23,7 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
 
     Vertex opengl_position;
 
-    float mapWidth, mapHeight;
+    int mapWidth, mapHeight;
 
     public BUObject3D myObject;
     public int race;
@@ -165,7 +165,7 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
             case OBJECT_GALAXY:
                 return new ModelGalaxy();
             default:
-                return new BUObject3D(Primitives.getCone(10f));
+                return new BUObject3D(Primitives.getCone(10f),BUObject3D.OTHER);
         }
     }
 
@@ -868,6 +868,22 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
         return map;
     }
 
+    /**
+     *
+     * @return
+     */
+    public int getMapHeight() {
+        return mapHeight;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public int getMapWidth() {
+        return mapWidth;
+    }
+
     @Override
     public Vertex getVertex() {
         return opengl_position;
@@ -914,6 +930,8 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
     public BUObject3D getObject() {
         return myObject;
     }
+
+
     /*----------------------------------------RUNNABLES-----------------------------------*/
 
 }

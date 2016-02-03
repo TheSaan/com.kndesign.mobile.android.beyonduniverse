@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/menu_background">
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/gameActivity.button.startgame"
+        android:id="@+id/btnStartGame"
+        android:width="250dp"
+        android:layout_marginTop="178dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/menu_button"
+        android:textColor="#ffffff" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/gameActivity.button.loadgame"
+        android:id="@+id/btnLoadGame"
+        android:layout_below="@+id/btnStartGame"
+        android:layout_alignLeft="@+id/btnStartGame"
+        android:layout_alignStart="@+id/btnStartGame"
+        android:width="250dp"
+        android:background="@drawable/menu_button"
+        android:textColor="#ffffff" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnOptions"
+        android:text="@string/gameActivity.button.options"
+        android:layout_below="@+id/btnLoadGame"
+        android:layout_alignRight="@+id/btnLoadGame"
+        android:layout_alignEnd="@+id/btnLoadGame"
+        android:width="250dp"
+        android:background="@drawable/menu_button"
+        android:textColor="#ffffff" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/gameActivity.button.credits"
+        android:id="@+id/btnCredits"
+        android:layout_below="@+id/btnOptions"
+        android:layout_alignRight="@+id/btnLoadGame"
+        android:width="250dp"
+        android:background="@drawable/menu_button"
+        android:textColor="#ffffff" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/gameActivity.button.developer_options"
+        android:id="@+id/btnDevOptions"
+        android:layout_below="@+id/btnCredits"
+        android:layout_alignRight="@+id/btnLoadGame"
+        android:width="250dp"
+        android:background="@drawable/menu_button"
+        android:textColor="#ffffff" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/gameActivity.button.exit"
+        android:id="@+id/btnExit"
+        android:layout_below="@+id/btnDevOptions"
+        android:layout_alignRight="@+id/btnLoadGame"
+        android:width="250dp"
+        android:background="@drawable/menu_button"
+        android:textColor="#ffffff" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ivBackground" />
+
+</RelativeLayout>

@@ -8,6 +8,6 @@ import com.threed.jpct.Primitives;
  */
 public class ModelGalaxy extends BUObject3D {
     public ModelGalaxy(){
-        super(Primitives.getPyramide(10,4f));
+        super(Primitives.getPyramide(10,4f),NON_STATIC);
     }
 }

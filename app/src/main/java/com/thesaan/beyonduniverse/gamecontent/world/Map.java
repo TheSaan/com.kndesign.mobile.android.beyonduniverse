@@ -5,7 +5,6 @@ import android.content.Context;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.UniverseObject;
 import com.thesaan.beyonduniverse.math.ObjectVector;
 import com.thesaan.gameengine.android.handler.MathHandler;
-import com.thesaan.gameengine.android.handler.RandomHandler;
 import com.thesaan.gameengine.android.handler.TestHandler;
 import com.thesaan.gameengine.android.jpct_extend.BUObject3D;
 import com.thesaan.gameengine.android.opengl.shapes.Shape;
@@ -113,6 +112,9 @@ public class Map {
         init();
     }
 
+    /**
+     *
+     */
     public void loadQuadrantMap() {
         float mw = screenWidth;//x value
         float mh = screenHeight;// y value
@@ -182,15 +184,22 @@ public class Map {
         quadrantsLoaded = true;
     }
 
+    /**
+     *
+     * @param context
+     */
     public void setContext(Context context) {
         this.context = context;
     }
 
+    /**
+     * Creates the First layer of Star Map Objects (galaxies)
+     */
     public void load() {
 
 
         if (context != null) {
-            World world = new World(context);
+            Game world = new Game(context);
 
             //            mObjects = ((World) world).createGalaxies(
 //                    RandomHandler.createIntegerFromRange(gMin,gMax,world.random)
@@ -203,14 +212,21 @@ public class Map {
 
             if (mObjects != null) {
                 int length = mObjects.length;
+
                 if (length > 0) {
+
                     numberOfObjects = length;
+
+                    //set coordinates
                     int loading_status = init();
+
                     if (loading_status == LOADED) {
                         loaded = true;
                     } else {
                         loaded = false;
                     }
+                }else{
+                    System.err.println("GAME OUTPUT: No Objects to load.");
                 }
             }
         } else {
@@ -481,6 +497,10 @@ public class Map {
 
 //    }
 
+    /**
+     *
+     * @param mapCursor
+     */
     public void setMapCursor(MathHandler.Vector mapCursor) {
         this.mapCursor = mapCursor;
     }
@@ -517,6 +537,10 @@ public class Map {
         return init();
     }
 
+    /**
+     * Get the Models of the objects
+     * @return
+     */
     public BUObject3D[] getObjectModels() {
 
         int length = getObjects().length;

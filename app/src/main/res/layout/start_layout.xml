@@ -22,7 +22,7 @@
         <Button
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:text="@string/StartActivitystart.button.startgame"
+            android:text="@string/gameActivity.button.startgame"
             android:id="@+id/B_new_game"
             android:layout_alignBottom="@+id/imageView"
             android:layout_centerHorizontal="true" />
@@ -30,7 +30,7 @@
         <Button
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:text="@string/StartActivitystart.button.loadgame"
+            android:text="@string/gameActivity.button.loadgame"
             android:id="@+id/B_load_game"
             android:layout_below="@+id/imageView"
             android:layout_centerHorizontal="true" />
@@ -38,7 +38,7 @@
         <Button
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:text="@string/StartActivitystart.button.options"
+            android:text="@string/gameActivity.button.options"
             android:id="@+id/B_options"
             android:layout_below="@+id/B_load_game"
             android:layout_centerHorizontal="true" />
@@ -46,7 +46,7 @@
         <Button
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:text="@string/StartActivitystart.button.credits"
+            android:text="@string/gameActivity.button.credits"
             android:id="@+id/B_credits"
             android:layout_below="@+id/B_options"
             android:layout_centerHorizontal="true" />
@@ -54,7 +54,7 @@
         <Button
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:text="@string/StartActivitystart.button.exit"
+            android:text="@string/gameActivity.button.exit"
             android:id="@+id/B_exit"
             android:layout_below="@+id/B_credits"
             android:layout_centerHorizontal="true" />
@@ -62,7 +62,7 @@
         <Button
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:text="@string/StartActivitystart.button.developer_options"
+            android:text="@string/gameActivity.button.developer_options"
             android:id="@+id/B_dev_options"
             android:layout_below="@+id/B_exit"
             android:layout_centerHorizontal="true"

@@ -61,7 +61,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     private Light sun = null;
     private FrameBuffer fb = null;
-    private World world = null;
+    private Level level = null;
     private RGBColor back = new RGBColor(50, 50, 100);
 
     //just getting the screen dimension
@@ -92,11 +92,15 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     /**
      * @param context
+     * @param game
      */
-    public MyGLRenderer(Context context, Map map) {
+    public MyGLRenderer(Context context, Game game) {
         super();
         this.mContext = context;
-        this.map = map;
+        this.map = game.getMap();
+
+        setScreenDim(map.getScreenWidth(),map.getScreenHeight());
+        setSceneCenter(game.getPivot());
 
     }
 
@@ -121,10 +125,10 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
         fb = new FrameBuffer(w, h);
 
-        world = new World();
-        world.setAmbientLight(20, 20, 20);
+        level = new Level(mContext);
+        level.setAmbientLight(20, 20, 20);
 
-        sun = new Light(world);
+        sun = new Light(level);
         sun.setIntensity(250, 250, 250);
 
         // Create a texture out of the icon...:-)
@@ -144,22 +148,22 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
             obj.setRotationPivot(pivot);
 
-            world.addObject(obj);
+            level.addObject(obj);
 
             textureID++;
         }
 
 
-        centersphere = new BUObject3D(Primitives.getSphere(10f));
+        centersphere = new BUObject3D(Primitives.getSphere(10f),BUObject3D.PLAYER);
 
         TextureManager.getInstance().addTexture("texture" + textureID, texture);
         centersphere.setTexture("texture" + textureID);
         centersphere.strip();
         centersphere.build();
         centersphere.translate(pivot);
-        world.addObject(centersphere);
+        level.addObject(centersphere);
 
-        cam = world.getCamera();
+        cam = level.getCamera();
         cam.moveCamera(Camera.CAMERA_MOVEOUT, 50);
 
         cam.lookAt(pivot);
@@ -198,8 +202,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 //        glfont.end();
 
         fb.clear(back);
-        world.renderScene(fb);
-        world.draw(fb);
+        level.renderScene(fb);
+        level.draw(fb);
         fb.display();
 
         if (System.currentTimeMillis() - time >= 1000) {
@@ -237,6 +241,10 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         centersphere.rotateX(0.01f);
     }
 
+    /**
+     * Set the start time, to get the steps, the
+     * camera moves each frame
+     */
     public void setCamStartMoveTime() {
         camStartMove = System.currentTimeMillis();
 

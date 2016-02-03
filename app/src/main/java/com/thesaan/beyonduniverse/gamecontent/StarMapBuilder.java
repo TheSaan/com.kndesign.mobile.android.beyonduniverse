@@ -2,14 +2,11 @@ package com.thesaan.beyonduniverse.gamecontent;
 
 import android.content.Context;
 
-import com.thesaan.beyonduniverse.gamecontent.world.Map;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Galaxy;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Moon;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Planet;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.SolarSystem;
-import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Star;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.UniverseObject;
-import com.thesaan.beyonduniverse.gamecontent.world.World;
 
 @Deprecated
 public class StarMapBuilder {

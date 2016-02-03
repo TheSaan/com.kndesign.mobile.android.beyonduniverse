@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
-import com.thesaan.beyonduniverse.gamecontent.world.World;
+import com.thesaan.beyonduniverse.gamecontent.world.Game;
 
 /**
  * Created by mknoe on 30.04.2015.
@@ -18,7 +18,7 @@ public class CreateWorldService extends Service {
 
     Context context;
 
-    World mUniverse;
+    Game mUniverse;
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         System.out.println("CreateWorldService runs");
@@ -28,7 +28,7 @@ public class CreateWorldService extends Service {
         return Service.START_STICKY;
     }
 
-    public World getBuiltUniverse(){
+    public Game getBuiltUniverse(){
         return mUniverse;
     }
 

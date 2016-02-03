@@ -20,7 +20,7 @@ public class TestHandler{
         testcase = 0;
     }
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    public void startTimer(){
+    public  void startTimer(){
         start = 0;
         testcase++;
         start = SystemClock.elapsedRealtimeNanos();
@@ -31,7 +31,7 @@ public class TestHandler{
      * @return
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    private double stopTime(){
+    public double stopTime(){
         long end = SystemClock.elapsedRealtimeNanos();
         return (double)(end-start)/1000000;
     }

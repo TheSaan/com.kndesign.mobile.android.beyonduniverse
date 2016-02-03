@@ -3,12 +3,12 @@
     <string name="buttonNewGameText">Neues Spiel</string>
     <string name="buttonOptionsText">Options</string>
     <!-- Start Activity-->
-    <string name="StartActivitystart.button.startgame">Neues Spiel</string>
-    <string name="StartActivitystart.button.loadgame">Spiel laden</string>
-    <string name="StartActivitystart.button.options">Optionen</string>
-    <string name="StartActivitystart.button.developer_options">Entwickleroptionen</string>
-    <string name="StartActivitystart.button.credits">Credits</string>
-    <string name="StartActivitystart.button.exit">Spiel beenden</string>
+    <string name="gameActivity.button.startgame">Neues Spiel</string>
+    <string name="gameActivity.button.loadgame">Spiel laden</string>
+    <string name="gameActivity.button.options">Optionen</string>
+    <string name="gameActivity.button.developer_options">Entwickleroptionen</string>
+    <string name="gameActivity.button.credits">Credits</string>
+    <string name="gameActivity.button.exit">Spiel beenden</string>
     <!-- Developers Activity-->
     <!-- Creator data-->
     <string name="DeveloperActivity.creator_title">Welt bearbeiten</string>

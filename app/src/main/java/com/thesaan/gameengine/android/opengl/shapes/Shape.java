@@ -4,6 +4,7 @@ import android.opengl.GLES20;
 
 import com.thesaan.gameengine.android.handler.MathHandler;
 import com.thesaan.gameengine.android.opengl.MyGLRenderer;
+import com.threed.jpct.SimpleVector;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -77,6 +78,18 @@ public class Shape {
     }
 
     /**
+     * In use when in the Star map an object is "too far away". Than
+     * the Model won't get drawn. Instead, a simple dot is drawn which
+     * reduces memory.
+     *
+     * @param modelCenter
+     */
+    public Shape(SimpleVector modelCenter){
+        pointCoords = modelCenter.toArray();
+        setVertexCount();
+    }
+
+    /**
      * A default {@link Shape}
      */
     public Shape(float[] map_coordinates) {
@@ -85,7 +98,6 @@ public class Shape {
 //        pointCoords = new float[map_coordinates.length];
         pointCoords = map_coordinates;
 //        copyCoordinates(pointCoords, map_coordinates);
-        vertexCount = pointCoords.length / COORDS_PER_VERTEX;
 
 
         init();
@@ -105,11 +117,17 @@ public class Shape {
 
 
         pointCoords = new float[]{x, y, z};
-        vertexCount = pointCoords.length / COORDS_PER_VERTEX;
+        setVertexCount();
 
         init();
     }
 
+    /**
+     * Just calculates the VertexCount value
+     */
+    public void setVertexCount(){
+        vertexCount = pointCoords.length / COORDS_PER_VERTEX;
+    }
     /**
      * @param mvpMatrix
      * @param shape     <p>{@link GLES20#GL_POINTS}</p>
