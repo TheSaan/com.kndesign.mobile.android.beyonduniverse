@@ -213,6 +213,7 @@ public class UniverseObject implements UniverseObjectProperties, ObjectPropertie
                 return setRandomProperties();
             case OBJECT_PLANET:
                 setRandomPlanetPosition();
+                setRandomPopulation();
                 return setRandomProperties();
             case OBJECT_MOON:
                 setRandomMoonPosition();

@@ -258,6 +258,7 @@ public class GameActivity extends Activity implements View.OnClickListener {
                 //start new game
                 mGLView = game.start(this);
                 setContentView(mGLView);
+                //TODO here comes than the character design for the player like setting name, race, etc
                 break;
             case R.id.btnLoadGame:
                 //to select a saved game to start it

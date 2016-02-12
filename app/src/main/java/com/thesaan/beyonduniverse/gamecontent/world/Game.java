@@ -8,6 +8,7 @@ import android.os.*;
 import android.util.DisplayMetrics;
 
 import com.thesaan.beyonduniverse.MyGLSurfaceView;
+import com.thesaan.beyonduniverse.gamecontent.Spaceship;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.Galaxy;
 import com.thesaan.beyonduniverse.gamecontent.world.SpaceObjects.UniverseObject;
 import com.thesaan.gameengine.android.handler.TestHandler;
@@ -25,6 +26,9 @@ import javax.microedition.khronos.egl.EGLDisplay;
  * random seed
  */
 public class Game extends UniverseObject implements UniverseObjectProperties {
+
+    public final static int NEW_GAME = 1;
+    public final static int LOAD_GAME = 2;
 
     Context context;
 
@@ -171,12 +175,41 @@ public class Game extends UniverseObject implements UniverseObjectProperties {
     }
 
     /**
+     *
+     * @param levelname
+     * @param loadingmode
+     * Choose wether a new game will start or a existing saved game will be loaded
+     */
+    public Level load(String levelname,int loadingmode){
+        if(loadingmode != NEW_GAME || loadingmode != LOAD_GAME){
+            System.err.println("Wrong load parameter for loadingmode("+loadingmode+")");
+            //TODO let return to main menue if happens
+            return null;
+        }
+        if((levelname == "" || levelname == null)&& loadingmode == LOAD_GAME){
+            System.err.println("Cannot load Level without a name.");
+            //TODO let return to main menue if happens
+            return null;
+        }
+
+        //Everything went fine
+        Level l = new Level(context);
+        l.load(levelname);
+
+        return l;
+
+    }
+    /**
      * Save current data and settings
      */
     public void save(){
 
+
     }
 
+    /**
+     * Loads the User Interface
+     */
     public void loadUI(){
 
     }

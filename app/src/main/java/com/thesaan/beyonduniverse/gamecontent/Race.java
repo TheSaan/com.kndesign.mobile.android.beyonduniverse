@@ -29,7 +29,7 @@ public class Race {
     /**
      * Dollar
      */
-    public static String HUMAN_CURRENCY = "Dollar";
+    public static String HUMAN_CURRENCY = "Credits";
     /**
      * Opas
      */

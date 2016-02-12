@@ -68,6 +68,14 @@ public class Level extends World {
     }
 
     /**
+     * Just runs small levels for testing certain stuff
+     * @param testlevel
+     * @param testtype
+     */
+    public Level(String testlevel,int testtype){
+
+    }
+    /**
      * @param npc
      */
     public void addNPC(BUObject3D npc) {

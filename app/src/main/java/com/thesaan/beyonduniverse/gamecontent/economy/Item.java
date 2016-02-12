@@ -13,7 +13,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.File;
 
 /**
- * Created by mknoe on 29.04.2015.
+ * Diese Klasse Beschreibt alle Eigenschaften eines Militaerangestellten.
  */
 public class Item {
 
@@ -34,6 +34,9 @@ public class Item {
     public final static int ITEM_TYPE_ARMOR = 203;
     public final static int ITEM_TYPE_FOOD = 204;
     public final static int ITEM_TYPE_BAVERAGE = 205;
+    /**
+     * Gegenstand ist ein Luxusgut
+     */
     public final static int ITEM_TYPE_LUXURY = 206;
     public final static int ITEM_TYPE_MEDICINE = 207;
     public final static int ITEM_TYPE_DRUGS = 208;
@@ -94,6 +97,7 @@ public class Item {
     private int itemType;
     private double containerSpace;
 
+
     //DE: Ablaufdatum
     private double expirationDate;
 
@@ -105,14 +109,19 @@ public class Item {
 
     private int myDrawableId;
 
+
+
+
     /**
      * Just the data holder for each created Item from database.
      * @param context
      * @param race
+     * Definiert die Rassenzugehörigkeit
      * @param name
      * @param itemType
      */
     public Item(Context context, Race race, String name, int itemType){
+
         this.context = context;
 
         myRace = race;
@@ -126,15 +135,23 @@ public class Item {
             System.err.println("XmlPull Ex");
         }
     }
+
+
+
     public Item(int race, String name, int itemType, int amount){
         quantity = amount;
         myRace = new Race(race);
         this.name = name;
         this.itemType = itemType;
     }
+
+
+
+
     //TODO create item root class
     
     public Bitmap getMyIcon(){
+
         return icon;
     }
 
@@ -144,6 +161,7 @@ public class Item {
         if(icon == null)
             System.err.println("Item icon not set!");
     }
+
     public Bitmap getIcon(){
         return icon;
     }
